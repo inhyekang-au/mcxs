@@ -113,7 +113,7 @@ icp = aggregate(icp_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # commo
 stp = aggregate(stp_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # stock price (AUD)
 
 cpi = aggregate(cpi_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # CPI (Index)
-View(stp)
+# View(stp)
 ## REAL terms
 # real interest rate (%)
 ICR = icr-INF
