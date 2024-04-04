@@ -313,6 +313,10 @@ The partial autocorrelation function (PACF) plots show that the partial autocorr
 To test the presence of unit-root, Augmented Dickey-Fuller Test of the null hypothesis of unit-root non-stationarity was performed. 
 
 ```{r ADF on level, message=FALSE}
+#| echo: false
+#| message: false
+#| warning: false
+
 library(tseries)
 # ADF on level
 adf <- as.data.frame(matrix(nrow=6,ncol=3,NA))
