@@ -2,43 +2,36 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "The Effects of Monetary Policy on Commodity Prices: Evidence from the Australian Economy",
+    "title": "The Effects of Monetary Policy Shocks on Commodity Price Volatility: Evidence from the Australian Economy",
     "section": "",
-    "text": "Abstract. This research project aims to measure the effects of monetary policy using Bayesian Structural Vector Autoregressive Model (SVAR) in Australian economy from 1990 to 2023.\nKeywords. Monetary policy shocks, Structural VARs, Impulse response functions"
+    "text": "Abstract. This research project aims to measure the effects of monetary policy on commodity prices using the Bayesian Structural Vector Autoregressive Model (SVAR) in the Australian economy from 1990 to 2023.\nKeywords. Monetary policy shocks, Commodity Prices, Structural VARs, Impulse response"
   },
   {
     "objectID": "index.html#descriptive-statistics",
     "href": "index.html#descriptive-statistics",
-    "title": "The Effects of Monetary Policy on Commodity Prices: Evidence from the Australian Economy",
+    "title": "The Effects of Monetary Policy Shocks on Commodity Price Volatility: Evidence from the Australian Economy",
     "section": "Descriptive statistics",
-    "text": "Descriptive statistics\n\n\n\nTable 1: Summary of descriptive statistics\n\n\n\nn\nMean\nSd\nMin\nMax\n\n\n\n\nGDP\n135\n0.007\n0.010\n-0.072\n0.041\n\n\nInterest rate\n135\n3.867\n2.720\n-2.000\n13.542\n\n\nInflation\n135\n0.661\n0.595\n-1.800\n3.800\n\n\nExchange rate\n135\n-0.001\n0.045\n-0.254\n0.130\n\n\nCommodity price\n135\n0.003\n0.065\n-0.289\n0.193\n\n\nStock price\n135\n0.005\n0.058\n-0.265\n0.114"
+    "text": "Descriptive statistics\nTable 2 shows\n\n\n\n\n\nVariable\nn\nMean\nSd\nMin\nMax\n\n\n\n\nGDP\n135\n0.007\n0.010\n-0.072\n0.041\n\n\nInterest rates\n135\n3.867\n2.720\n-2.000\n13.542\n\n\nInflation\n135\n0.661\n0.595\n-1.800\n3.800\n\n\nExchange rate\n135\n-0.001\n0.045\n-0.254\n0.130\n\n\nCommodity prices\n135\n0.003\n0.065\n-0.289\n0.193\n\n\nStock prices\n135\n0.005\n0.058\n-0.265\n0.114\n\n\n\n\n\n\n\nTable 2: Summary of descriptive statistics"
   },
   {
     "objectID": "index.html#diagonostic-test",
     "href": "index.html#diagonostic-test",
-    "title": "The Effects of Monetary Policy on Commodity Prices: Evidence from the Australian Economy",
+    "title": "The Effects of Monetary Policy Shocks on Commodity Price Volatility: Evidence from the Australian Economy",
     "section": "Diagonostic test",
-    "text": "Diagonostic test\n\nAutocorrelation tests\n\n\n\n\n\nThe autocorrelation function (ACF) plots show that only the interest rate has non-zero autocorrelation for at least 20 lags, which implies that interest rate is non-stationary series. After the log difference transformation, the variables GDP, exchange rate, commodity prices and stock prices implies stationarity.\n\n\n\n\n\nThe partial autocorrelation function (PACF) plots show that the partial autocorrelation for interest rate is significant at first lag. The partial autocorrelation for GDP, inflation, exchange rate, commodity prices and stock prices is significant at lags 5, 2, 8, 4, and 4, respectively."
+    "text": "Diagonostic test\n\nAutocorrelation tests\nThe autocorrelation test is used to identify the presence of serial correlation between a variable’s current value and its lagged value, indicating that past values influence the current value.\nThe autocorrelation function (ACF) plots… Figure 3 shows that only the interest rates have non-zero autocorrelation for at least 20 lags, which implies that interest rates are non-stationary series. After the log difference transformation, the variables GDP, exchange rate, commodity, and stock prices imply stationarity.\n\n\n\n\n\n\n\nFigure 3: Plots of autocorrelation functions\n\n\nThe partial autocorrelation function (PACF) plots… Figure 4 shows that the partial autocorrelation for interest rates is significant at first lag. The partial autocorrelation for GDP, inflation, exchange rate, commodity prices and stock prices is significant at lags 5, 2, 8, 4, and 4, respectively.\n\n\n\n\n\n\n\nFigure 4: Plots of partial autocorrelation functions"
   },
   {
     "objectID": "index.html#unit-root-test",
     "href": "index.html#unit-root-test",
-    "title": "The Effects of Monetary Policy on Commodity Prices: Evidence from the Australian Economy",
+    "title": "The Effects of Monetary Policy Shocks on Commodity Price Volatility: Evidence from the Australian Economy",
     "section": "Unit root test",
-    "text": "Unit root test\n\nAugmented Dickey-Fuller test\nTo test the presence of unit-root, Augmented Dickey-Fuller Test of the null hypothesis of unit-root non-stationarity was performed.\n\n\nWarning in adf.test(variables[, i]): p-value smaller than printed p-value\n\nWarning in adf.test(variables[, i]): p-value smaller than printed p-value\n\nWarning in adf.test(variables[, i]): p-value smaller than printed p-value\n\nWarning in adf.test(variables[, i]): p-value smaller than printed p-value\n\nWarning in adf.test(variables[, i]): p-value smaller than printed p-value\n\n\n\n\n\n\nTest statistic\nLag order\np-value\n\n\n\n\nGDP\n-5.762\n5\n0.010\n\n\nInterest rate\n-4.134\n5\n0.010\n\n\nInflation\n-3.855\n5\n0.018\n\n\nExchange rate\n-4.249\n5\n0.010\n\n\nCommodity price\n-5.433\n5\n0.010\n\n\nStock price\n-5.116\n5\n0.010\n\n\n\n\n\nThe augmented Dickey-Fuller test shows that the null hypothesis was rejected at the 5% significance level, implies that all the series are unit-root stationary."
+    "text": "Unit root test\n\nAugmented Dickey-Fuller test\nThe Augmented Dickey-Fuller Test of the null hypothesis of unit root non-stationarity was performed to test the presence of the unit root.\n\n\n\n\n\n\nTest statistic\np-value\n\n\n\n\nGDP\n-5.762\n0.010\n\n\nInterest rates\n-4.134\n0.010\n\n\nInflation\n-3.855\n0.018\n\n\nExchange rate\n-4.249\n0.010\n\n\nCommodity prices\n-5.433\n0.010\n\n\nStock prices\n-5.116\n0.010\n\n\n\n\n\n\n\nTable 3: Augmented Dickey-Fuller test results\n\n\nThe Augmented Dickey-Fuller test shows that the null hypothesis was rejected at the 5% significance level, implying that all the series are unit-root stationary."
   },
   {
     "objectID": "index.html#model-specification",
     "href": "index.html#model-specification",
-    "title": "The Effects of Monetary Policy on Commodity Prices: Evidence from the Australian Economy",
+    "title": "The Effects of Monetary Policy Shocks on Commodity Price Volatility: Evidence from the Australian Economy",
     "section": "Model specification",
-    "text": "Model specification\nIn this study, Bayesian Structural vector autoregression (SVAR) models is used to measure the dynamic and contemporaneous relationships between variables. The model is the following:\n\\[\\begin{align}\nB_0Y_t = b_0 + \\sum_{i=1}^{p} B_iY_{t-i} + \\epsilon_t\n\\end{align}\\]\n\\[\\begin{align}\n\\epsilon_t|Y_{t-1} \\sim iid(0_N, I_N)\n\\end{align}\\]\nIn the model, \\(Y_t\\) contains six variables ordered as: (1) real GDP growth, \\(GDP_t\\), (2) real interest rate, \\(ICR_t\\), (3) Inflation, \\(INF_t\\), (4) real exchange rate change from AUD to USD, \\(EXR_t\\), (5) commodity prices change \\(ICP_t\\), and (6) stock prices change \\(STP_t\\).\n\\[\\begin{align}\nY_t=\n\\begin{pmatrix}\n   GDP_t\n\\\\ICR_t\n\\\\INF_t\n\\\\EXR_t\n\\\\ICP_t\n\\\\STP_t\n\\end{pmatrix}\n\\end{align}\\]"
-  },
-  {
-    "objectID": "index.html#references",
-    "href": "index.html#references",
-    "title": "The Effects of Monetary Policy on Commodity Prices: Evidence from the Australian Economy",
-    "section": "References",
-    "text": "References\nMajumder, M. K., Raghavan, M., & Vespignani, J. (2022). The impact of commodity price volatility on fiscal balance and the role of real interest rate. Empirical Economics: Journal of the Institute for Advanced Studies, Vienna, Austria, 63(3), 1375–1402. https://doi.org/10.1007/s00181-021-02168-3"
+    "text": "Model specification\nThis study uses a Bayesian Structural vector autoregression model to measure the dynamic and contemporaneous relationships between variables. The endogenous variables in the model are the following: \\[\nY_t=\n\\begin{pmatrix}\n   GDP_t\n\\\\ICR_t\n\\\\INF_t\n\\\\EXR_t\n\\\\ICP_t\n\\\\STP_t\n\\end{pmatrix}\n\\] \\(Y_t\\) contains six variables ordered as\n   (1) real GDP growth rate, \\(GDP_t\\),\n   (2) real interest rates, \\(ICR_t\\),\n   (3) Inflation, \\(INF_t\\),\n   (4) real exchange rate volatility from AUD to USD, \\(EXR_t\\),\n   (5) commodity prices volatility, \\(ICP_t\\), and\n   (6) stock prices volatility, \\(STP_t\\).\n\nStructural form\nThe Structural VAR model can be represented as follows: \\[\nB_0Y_t = b_0 + \\sum_{i=1}^{p} B_iY_{t-i} + u_t\n\\] \\[\nu_t|Y_{t-1} \\sim iid(0_N, I_N)\n\\] where\n   \\(Y_t\\) is an \\(N \\times 1\\) vector of endogenous variables at time \\(t\\),\n   \\(B_0\\) is an \\(N \\times N\\) matrix capturing contemporaneous relationships between variables,\n   \\(u_t\\) is an \\(N \\times 1\\) vector conditionally on \\(Y_{t-1}\\) orthogonal structural shocks,\n   \\(N\\) is the number of endogeneous variables, and \\(p\\) is the lag length.\n\n\nReduced form\nThe reduced can be represented as follows: \\[\nY_t = \\mu_0 + \\sum_{i=1}^{p} A_iY_{t-i} + \\epsilon_t\n\\] \\[\n\\epsilon_t|Y_{t-1} \\sim iid(0_N, \\Sigma)\n\\] where\n   \\(Y_t\\) is an \\(N \\times 1\\) vector of endogenous variables at time \\(t\\),\n   \\(A_i\\) is an \\(N \\times N\\) matrix of autoregressive slope parameters,\n   \\(\\mu_0\\) is an \\(N \\times 1\\) vector of constant terms,\n   \\(\\epsilon_t\\) is an \\(N \\times 1\\) vector of white noise error terms,\n   \\(\\Sigma\\) is an \\(N \\times N\\) covariance matrix of error terms \\(\\epsilon_t\\), where \\(\\Sigma = B_0^{-1} {B_0^{-1}}'\\),\n   \\(N\\) is the number of endogeneous variables, and \\(p\\) is the lag length."
   }
 ]
