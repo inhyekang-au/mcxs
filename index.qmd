@@ -126,6 +126,10 @@ STP = stp*(100/cpi)
 ```
 GDP, interest rate, inflation, exchange rate, commodity prices, and stock prices are plotted in Figure 1.
 ```{r time series plots, message=FALSE}
+#| echo: false
+#| message: false
+#| warning: false
+
 library(ggplot2)
 library(gridExtra)
 library(grid)
@@ -209,6 +213,10 @@ logSTP = diff(log(STP))
 ```
 
 ```{r log difference plot}
+#| echo: false
+#| message: false
+#| warning: false
+
 plotlogGDP <- ggplot2::ggplot(data = logGDP, aes(x = time(logGDP), y = as.vector(logGDP))) +
   geom_line(color = "blue", linewidth = 1) + 
   geom_hline(yintercept = 0, linetype = "solid", color = "black", size = 0.5) +
@@ -274,7 +282,12 @@ grid.arrange(plotlogGDP, plotICR, plotINF, plotlogEXR, plotlogICP, plotlogSTP, n
 
 ## Descriptive statistics
 
+Table 1 shows that the summary of descriptive statistics. The mean, standard deviation, minimum and maximum is as follows:
 ```{r descriptive statistics, message=FALSE}
+#| echo: false
+#| message: false
+#| warning: false
+
 # Final dataset
 variables = merge(logGDP, ICR, INF, logEXR, logICP, logSTP)
 colnames(variables) = c("GDP", "Interest rate", "Inflation", "Exchange rate", "Commodity price", "Stock price")
@@ -293,6 +306,10 @@ knitr::kable(summary_stats, caption = "Table 1: Summary of descriptive statistic
 ## Diagonostic test
 ### Autocorrelation tests
 ```{r ACF}
+#| echo: false
+#| message: false
+#| warning: false
+
 par(mfrow = c(3, 2))
 acf(logGDP, main = "GDP", plot = TRUE)
 acf(ICR, main = "Interest rate", plot = TRUE)
@@ -304,6 +321,10 @@ acf(logSTP, main = "Stock price", plot = TRUE)
 The autocorrelation function (ACF) plots show that only the interest rate has non-zero autocorrelation for at least 20 lags, which implies that interest rate is non-stationary series. After the log difference transformation, the variables GDP, exchange rate, commodity prices and stock prices implies stationarity.
 
 ```{r PACF}
+#| echo: false
+#| message: false
+#| warning: false
+
 par(mfrow = c(3, 2))
 pacf(logGDP, main = "logGDP", plot = TRUE)
 pacf(ICR, main = "ICR", plot = TRUE)
