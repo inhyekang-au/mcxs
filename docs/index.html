@@ -8,7 +8,7 @@
 
 <meta name="author" content="Inhye Kang">
 
-<title>Macroeconometrics Research Report - The Effects of Monetary Policy on Commodity Prices: Evidence from the Australian Economy</title>
+<title>Macroeconometrics Research Report - The Effects of Monetary Policy Shocks on Commodity Price: Evidence from the Australian Economy</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -21,7 +21,26 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -96,19 +115,23 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
   <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a>
   <ul class="collapse">
-  <li><a href="#descriptive-statistics" id="toc-descriptive-statistics" class="nav-link" data-scroll-target="#descriptive-statistics">Descriptive statistics</a></li>
-  <li><a href="#diagonostic-test" id="toc-diagonostic-test" class="nav-link" data-scroll-target="#diagonostic-test">Diagonostic test</a>
+  <li><a href="#diagnostic-tests" id="toc-diagnostic-tests" class="nav-link" data-scroll-target="#diagnostic-tests">Diagnostic tests</a>
   <ul class="collapse">
-  <li><a href="#autocorrelation-tests" id="toc-autocorrelation-tests" class="nav-link" data-scroll-target="#autocorrelation-tests">Autocorrelation tests</a></li>
-  </ul></li>
-  <li><a href="#unit-root-test" id="toc-unit-root-test" class="nav-link" data-scroll-target="#unit-root-test">Unit root test</a>
-  <ul class="collapse">
-  <li><a href="#augmented-dickey-fuller-test" id="toc-augmented-dickey-fuller-test" class="nav-link" data-scroll-target="#augmented-dickey-fuller-test">Augmented Dickey-Fuller test</a></li>
+  <li><a href="#autocorrelationpartial-autocorrelation-function-plots" id="toc-autocorrelationpartial-autocorrelation-function-plots" class="nav-link" data-scroll-target="#autocorrelationpartial-autocorrelation-function-plots">Autocorrelation/Partial autocorrelation function plots</a></li>
+  <li><a href="#unit-root-test" id="toc-unit-root-test" class="nav-link" data-scroll-target="#unit-root-test">Unit root test</a></li>
   </ul></li>
   </ul></li>
   <li><a href="#methodology" id="toc-methodology" class="nav-link" data-scroll-target="#methodology">Methodology</a>
   <ul class="collapse">
-  <li><a href="#model-specification" id="toc-model-specification" class="nav-link" data-scroll-target="#model-specification">Model specification</a></li>
+  <li><a href="#model-specification" id="toc-model-specification" class="nav-link" data-scroll-target="#model-specification">Model specification</a>
+  <ul class="collapse">
+  <li><a href="#structural-form" id="toc-structural-form" class="nav-link" data-scroll-target="#structural-form">Structural form</a></li>
+  <li><a href="#reduced-form" id="toc-reduced-form" class="nav-link" data-scroll-target="#reduced-form">Reduced form</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#empirical-results" id="toc-empirical-results" class="nav-link" data-scroll-target="#empirical-results">Empirical Results</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a>
+  <ul class="collapse">
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul></li>
   </ul>
@@ -119,7 +142,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">The Effects of Monetary Policy on Commodity Prices: Evidence from the Australian Economy</h1>
+<h1 class="title">The Effects of Monetary Policy Shocks on Commodity Price: Evidence from the Australian Economy</h1>
 </div>
 
 
@@ -141,215 +164,337 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 <blockquote class="blockquote">
-<p><strong>Abstract.</strong> This research project aims to measure the effects of monetary policy using Bayesian Structural Vector Autoregressive Model (SVAR) in Australian economy from 1990 to 2023.</p>
-<p><strong>Keywords.</strong> Monetary policy shocks, Structural VARs, Impulse response functions</p>
+<p><strong>Abstract.</strong> This research project aims to measure the effects of monetary policy on commodity prices using the Bayesian Structural Vector Autoregressive Model (BSVAR) in the Australian economy from 1990 to 2023.</p>
+<p><strong>Keywords.</strong> Monetary policy shocks, Commodity Prices, Structural VARs, Impulse response</p>
 </blockquote>
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
-<p>This research project aims to measure the effects of monetary policy using a Bayesian Structural Vector Autoregressive Model (SVAR) in the Australian economy from 1990 to 2023. The question addressed in this study is: How does an increase in interest rate affect commodity prices in the Australian market?</p>
-<p>As commodity prices affect stakeholders, including businesses and government, the effect of change in commodity prices plays a large role in commodity-exporting countries like Australia. Majumder et al.&nbsp;(2022) argue that the lower real interest rate has a negative impact on commodity price volatility in both commodity-exporting countries, while a higher real interest rate increases the cost of borrowing, which reduces investment and output. This study aims to measure the monetary policy shocks on commodity prices using Bayesian Structural Vector Autoregression (SVAR), focusing on the Australian economy.</p>
+<p>This research project aims to measure the effects of monetary policy on commodity prices using a Bayesian Structural Vector Autoregressive Model (BSVAR) in the Australian economy from 1990 to 2023. The question addressed in this study is: How does an increase in the cash rate target affect commodity prices in the Australian market?</p>
+<p>As commodity prices affect stakeholders, including businesses and government, the effect of change in commodity prices plays a large role in commodity-exporting countries like Australia. <span class="citation" data-cites="2022">Majumder et al. (<a href="#ref-2022" role="doc-biblioref">2022</a>)</span> argue that the lower real interest rates have a negative impact on commodity price volatility in both commodity-exporting countries, while higher real interest rates increase the cost of borrowing, which reduces investment and output. This study aims to measure the monetary policy shocks on commodity prices using the Bayesian Structural Vector Autoregression (BSVAR) model, focusing on the Australian economy.</p>
 </section>
 <section id="data" class="level1">
 <h1>Data</h1>
-<p>The study includes data from the Reserve Bank of Australia (RBA), the Australian Bureau of Statistics (ABS), International Monetary Fund (IMF) and Yahoo Finance from 1990 to 2023, adjusted in quarterly frequency from 1990 Q1 to 2023 Q4, including 136 observations. The variables selected for our analysis includes:</p>
-<p><strong>GDP (GDP)</strong>: real GDP, expressed as per million AUD <strong>Interest Rate (ICR)</strong>: real interest rate where cash rate target less inflation (INF), expressed as a percentage <strong>Inflation (INF)</strong>: seasonally adjusted inflation, expressed as a percentage <strong>Exchange rate (EXR)</strong>: real exchange rate from AUD to USD, adjusted by the consumer price index of Australia and the United States, expressed in USD <strong>Commodity prices (ICP)</strong>: index of commodity prices where base year value 2022/23 is 100, adjusted by the consumer price index <strong>Stock price (STP)</strong>: real stock price using adjusted closing price of All Ordinaries Index (^AORD) divided by the consumer price index, expressed in AUD.</p>
-<div class="cell">
-<div class="cell-output cell-output-stderr">
-<pre><code>Registered S3 method overwritten by 'quantmod':
-  method            from
-  as.zoo.data.frame zoo </code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Finding URLs for tables corresponding to ABS series IDA2325846C</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Attempting to download files from series IDA2325846C, Consumer Price Index, Australia</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Extracting data from downloaded spreadsheets</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Tidying data from imported ABS spreadsheets</code></pre>
-</div>
-</div>
-<p>GDP, interest rate, inflation, exchange rate, commodity prices, and stock prices are plotted in Figure 1.</p>
-<div class="cell">
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-ℹ Please use `linewidth` instead.</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: The `trans` argument of `continuous_scale()` is deprecated as of ggplot2 3.5.0.
-ℹ Please use the `transform` argument instead.</code></pre>
-</div>
-<div class="cell-output-display">
-<p><img src="index_files/figure-html/time series plots-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>GDP exhibits an upward trend except for a trough during the period of COVID-19. Interest rate depict a gradual downward trend, however from 2022 Q4, there is a significant increase in interest rate. Commodity prices and stock prices show a significant increase during the Global Financial Crisis.</p>
-<p>In the model, all the variables except for interest rates and inflation are transformed in log difference form for percentage change interpretation. In this stage, only the sample including all variables ranging from 1990 Q2 to 2023 Q4 is considered in the following section.</p>
+<p>The study includes data from the Reserve Bank of Australia (RBA), the Australian Bureau of Statistics (ABS), and Yahoo Finance from 1990 to 2023, adjusted quarterly from 1990 Q1 to 2023 Q4, including 136 observations. The variables selected for our analysis include:</p>
+<p>&nbsp;&nbsp;&nbsp;<strong>GDP (GDP)</strong>: real GDP, expressed as per billion AUD<br>
+&nbsp;&nbsp;&nbsp;<strong>Interest rates (ICR)</strong>: cash rate target, expressed as a percentage<br>
+&nbsp;&nbsp;&nbsp;<strong>Inflation (INF)</strong>: seasonally adjusted inflation, expressed as a percentage<br>
+&nbsp;&nbsp;&nbsp;<strong>Exchange rates (EXR)</strong>: exchange rate from AUD to USD, expressed in USD<br>
+&nbsp;&nbsp;&nbsp;<strong>Commodity prices (ICP)</strong>: index of commodity prices where base year value 2022/23 is 100, expressed in AUD,<br>
+&nbsp;&nbsp;&nbsp;<strong>Stock prices (STP)</strong>: stock price using the adjusted closing price of the All Ordinaries Index, expressed in AUD.</p>
+<p><a href="#table1-data-source"><span style="color: #696969;">Table 1</span></a> shows the details of the data source.</p>
 <div class="cell">
 <div class="cell-output-display">
-<p><img src="index_files/figure-html/log difference plot-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<section id="descriptive-statistics" class="level2">
-<h2 class="anchored" data-anchor-id="descriptive-statistics">Descriptive statistics</h2>
-<div class="cell">
-<div class="cell-output-display">
-<table class="table table-sm table-striped small">
-<caption>Table 1: Summary of descriptive statistics</caption>
+<table data-quarto-postprocess="true" class="table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th style="text-align: left;"></th>
-<th style="text-align: right;">n</th>
-<th style="text-align: right;">Mean</th>
-<th style="text-align: right;">Sd</th>
-<th style="text-align: right;">Min</th>
-<th style="text-align: right;">Max</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Variable</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Code</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Data source</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">GDP</td>
-<td style="text-align: right;">135</td>
-<td style="text-align: right;">0.007</td>
-<td style="text-align: right;">0.010</td>
-<td style="text-align: right;">-0.072</td>
-<td style="text-align: right;">0.041</td>
+<td style="text-align: left;">GGDPCVGDP</td>
+<td style="text-align: left;">RBA</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Interest rate</td>
-<td style="text-align: right;">135</td>
-<td style="text-align: right;">3.867</td>
-<td style="text-align: right;">2.720</td>
-<td style="text-align: right;">-2.000</td>
-<td style="text-align: right;">13.542</td>
+<td style="text-align: left;">Interest rates</td>
+<td style="text-align: left;">FIRMMCRTD</td>
+<td style="text-align: left;">RBA</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Inflation</td>
-<td style="text-align: right;">135</td>
-<td style="text-align: right;">0.661</td>
-<td style="text-align: right;">0.595</td>
-<td style="text-align: right;">-1.800</td>
-<td style="text-align: right;">3.800</td>
+<td style="text-align: left;">GCPIAGSAQP</td>
+<td style="text-align: left;">RBA</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Exchange rate</td>
-<td style="text-align: right;">135</td>
-<td style="text-align: right;">-0.001</td>
-<td style="text-align: right;">0.045</td>
-<td style="text-align: right;">-0.254</td>
-<td style="text-align: right;">0.130</td>
+<td style="text-align: left;">Exchange rates</td>
+<td style="text-align: left;">FXRUSD</td>
+<td style="text-align: left;">RBA</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Commodity price</td>
-<td style="text-align: right;">135</td>
-<td style="text-align: right;">0.003</td>
-<td style="text-align: right;">0.065</td>
-<td style="text-align: right;">-0.289</td>
-<td style="text-align: right;">0.193</td>
+<td style="text-align: left;">Commodity prices</td>
+<td style="text-align: left;">GRCPAIAD</td>
+<td style="text-align: left;">RBA</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Stock price</td>
-<td style="text-align: right;">135</td>
-<td style="text-align: right;">0.005</td>
-<td style="text-align: right;">0.058</td>
-<td style="text-align: right;">-0.265</td>
-<td style="text-align: right;">0.114</td>
+<td style="text-align: left;">Stock prices</td>
+<td style="text-align: left;">^AORD</td>
+<td style="text-align: left;">Yahoo Finance</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+<div id="table1-data-source" style="text-align: center; color: #696969;">
+<section id="table-1-data-source" class="level6">
+<h6 class="anchored" data-anchor-id="table-1-data-source">Table 1: Data source</h6>
+</section>
+</div>
+<p>GDP, interest rates, inflation, exchange rates, commodity prices, and stock prices are plotted in <a href="#figure1"><span style="color: #696969;">Figure 1</span></a>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/time series plots-1.png" class="img-fluid" width="624"></p>
+</div>
+</div>
+<div id="figure1" style="text-align: center; color: #696969;">
+<section id="figure-1-time-series-plots-of-the-variables" class="level6">
+<h6 class="anchored" data-anchor-id="figure-1-time-series-plots-of-the-variables">Figure 1: Time series plots of the variables</h6>
+</section>
+</div>
+<p>GDP exhibits an upward trend except for a trough during COVID-19. Interest rates depict a gradual downward trend; however, from 2022 Q4, there has been a significant increase in interest rates. Commodity and stock prices show a significant increase during the Global Financial Crisis.</p>
+<p><a href="#table2"><span style="color: #696969;">Table 2</span></a> demonstrates the descriptive statistics of the variables.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 23%">
+<col style="width: 19%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 5%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable</th>
+<th style="text-align: left;">Unit</th>
+<th style="text-align: right;">Mean</th>
+<th style="text-align: right;">SD</th>
+<th style="text-align: right;">Min</th>
+<th style="text-align: right;">Max</th>
+<th style="text-align: right;">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">GDP</td>
+<td style="text-align: left;">$ billion AUD</td>
+<td style="text-align: right;">403.378</td>
+<td style="text-align: right;">115.619</td>
+<td style="text-align: right;">229.170</td>
+<td style="text-align: right;">609.750</td>
+<td style="text-align: right;">136</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Interest rates</td>
+<td style="text-align: left;">Percentage</td>
+<td style="text-align: right;">4.620</td>
+<td style="text-align: right;">2.922</td>
+<td style="text-align: right;">0.100</td>
+<td style="text-align: right;">16.923</td>
+<td style="text-align: right;">136</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Inflation</td>
+<td style="text-align: left;">Percentage</td>
+<td style="text-align: right;">0.668</td>
+<td style="text-align: right;">0.598</td>
+<td style="text-align: right;">-1.800</td>
+<td style="text-align: right;">3.800</td>
+<td style="text-align: right;">136</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Exchange rates</td>
+<td style="text-align: left;">$ USD</td>
+<td style="text-align: right;">0.754</td>
+<td style="text-align: right;">0.122</td>
+<td style="text-align: right;">0.512</td>
+<td style="text-align: right;">1.063</td>
+<td style="text-align: right;">136</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Commodity prices</td>
+<td style="text-align: left;">$ AUD</td>
+<td style="text-align: right;">43.125</td>
+<td style="text-align: right;">20.959</td>
+<td style="text-align: right;">21.226</td>
+<td style="text-align: right;">108.827</td>
+<td style="text-align: right;">136</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Stock prices</td>
+<td style="text-align: left;">$ AUD</td>
+<td style="text-align: right;">4224.289</td>
+<td style="text-align: right;">1809.808</td>
+<td style="text-align: right;">1336.632</td>
+<td style="text-align: right;">7701.124</td>
+<td style="text-align: right;">136</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
+<div id="table2" style="text-align: center; color: #696969;">
+<section id="table-2-summary-of-descriptive-statistics" class="level6">
+<h6 class="anchored" data-anchor-id="table-2-summary-of-descriptive-statistics">Table 2: Summary of descriptive statistics</h6>
 </section>
-<section id="diagonostic-test" class="level2">
-<h2 class="anchored" data-anchor-id="diagonostic-test">Diagonostic test</h2>
-<section id="autocorrelation-tests" class="level3">
-<h3 class="anchored" data-anchor-id="autocorrelation-tests">Autocorrelation tests</h3>
+</div>
+<p>In our model, all variables except interest rates, inflation and exchange rates are transformed into a logarithmic scale.</p>
+<p><a href="#figure2"><span style="color: #696969;">Figure 2</span></a> shows</p>
 <div class="cell">
 <div class="cell-output-display">
-<p><img src="index_files/figure-html/ACF-1.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/log difference plot-1.png" class="img-fluid" width="624"></p>
 </div>
 </div>
-<p>The autocorrelation function (ACF) plots show that only the interest rate has non-zero autocorrelation for at least 20 lags, which implies that interest rate is non-stationary series. After the log difference transformation, the variables GDP, exchange rate, commodity prices and stock prices implies stationarity.</p>
+<div id="figure2" style="text-align: center; color: #696969;">
+<section id="figure-2-plot-for-the-data-in-logarithmic-scale" class="level6">
+<h6 class="anchored" data-anchor-id="figure-2-plot-for-the-data-in-logarithmic-scale">Figure 2: Plot for the data in logarithmic scale</h6>
+</section>
+</div>
+<section id="diagnostic-tests" class="level2">
+<h2 class="anchored" data-anchor-id="diagnostic-tests">Diagnostic tests</h2>
+<section id="autocorrelationpartial-autocorrelation-function-plots" class="level3">
+<h3 class="anchored" data-anchor-id="autocorrelationpartial-autocorrelation-function-plots">Autocorrelation/Partial autocorrelation function plots</h3>
+<p>The autocorrelation test is used to identify the presence of serial correlation between a variable’s current value and its lagged value, indicating that past values influence the current value.</p>
+<p>The autocorrelation function (ACF) plots… <a href="#figure3"><span style="color: #696969;">Figure 3</span></a> shows that only the interest rates have non-zero autocorrelation for at least 20 lags, which implies that interest rates are non-stationary series. After the log transformation, the variables GDP, exchange rates, commodity, and stock prices imply stationarity.</p>
 <div class="cell">
 <div class="cell-output-display">
-<p><img src="index_files/figure-html/PACF-1.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/ACF-1.png" class="img-fluid" width="624"></p>
 </div>
 </div>
-<p>The partial autocorrelation function (PACF) plots show that the partial autocorrelation for interest rate is significant at first lag. The partial autocorrelation for GDP, inflation, exchange rate, commodity prices and stock prices is significant at lags 5, 2, 8, 4, and 4, respectively.</p>
+<div id="figure3" style="text-align: center; color: #696969;">
+<section id="figure-3-plots-of-autocorrelation-functions" class="level6">
+<h6 class="anchored" data-anchor-id="figure-3-plots-of-autocorrelation-functions">Figure 3: Plots of autocorrelation functions</h6>
 </section>
-</section>
-<section id="unit-root-test" class="level2">
-<h2 class="anchored" data-anchor-id="unit-root-test">Unit root test</h2>
-<section id="augmented-dickey-fuller-test" class="level3">
-<h3 class="anchored" data-anchor-id="augmented-dickey-fuller-test">Augmented Dickey-Fuller test</h3>
-<p>To test the presence of unit-root, Augmented Dickey-Fuller Test of the null hypothesis of unit-root non-stationarity was performed.</p>
+</div>
+<p>The partial autocorrelation function (PACF) plots… <a href="#figure4"><span style="color: #696969;">Figure 4</span></a> shows that the partial autocorrelation for interest rates is significant at first lag. The partial autocorrelation for GDP, inflation, exchange rates, commodity prices and stock prices is significant at lags 5, 2, 8, 4, and 4, respectively.</p>
 <div class="cell">
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in adf.test(variables[, i]): p-value smaller than printed p-value
-
-Warning in adf.test(variables[, i]): p-value smaller than printed p-value
-
-Warning in adf.test(variables[, i]): p-value smaller than printed p-value
-
-Warning in adf.test(variables[, i]): p-value smaller than printed p-value
-
-Warning in adf.test(variables[, i]): p-value smaller than printed p-value</code></pre>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/PACF-1.png" class="img-fluid" width="624"></p>
 </div>
+</div>
+<div id="figure4" style="text-align: center; color: #696969;">
+<section id="figure-4-plots-of-partial-autocorrelation-functions" class="level6">
+<h6 class="anchored" data-anchor-id="figure-4-plots-of-partial-autocorrelation-functions">Figure 4: Plots of partial autocorrelation functions</h6>
+</section>
+</div>
+</section>
+<section id="unit-root-test" class="level3">
+<h3 class="anchored" data-anchor-id="unit-root-test">Unit root test</h3>
+<section id="augmented-dickey-fuller-test" class="level4">
+<h4 class="anchored" data-anchor-id="augmented-dickey-fuller-test">Augmented Dickey-Fuller test</h4>
+<p>The augmented Dickey-Fuller test of the null hypothesis of unit root nonstationarity was performed to test the presence of the unit root.</p>
+<div class="cell">
 <div class="cell-output-display">
 <table class="table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th style="text-align: left;"></th>
+<th style="text-align: left;">Variable</th>
 <th style="text-align: right;">Test statistic</th>
-<th style="text-align: right;">Lag order</th>
 <th style="text-align: right;">p-value</th>
+<th style="text-align: left;">Stationarity</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">GDP</td>
+<td style="text-align: right;">-1.296</td>
+<td style="text-align: right;">0.870</td>
+<td style="text-align: left;">No</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Interest rates</td>
+<td style="text-align: right;">-4.015</td>
+<td style="text-align: right;">0.011</td>
+<td style="text-align: left;">Yes</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Inflation</td>
+<td style="text-align: right;">-3.843</td>
+<td style="text-align: right;">0.019</td>
+<td style="text-align: left;">Yes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Exchange rates</td>
+<td style="text-align: right;">-1.885</td>
+<td style="text-align: right;">0.625</td>
+<td style="text-align: left;">No</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Commodity prices</td>
+<td style="text-align: right;">-2.211</td>
+<td style="text-align: right;">0.489</td>
+<td style="text-align: left;">No</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Stock prices</td>
+<td style="text-align: right;">-2.399</td>
+<td style="text-align: right;">0.410</td>
+<td style="text-align: left;">No</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="table3" style="text-align: center; color: #696969;">
+<section id="table-3-augmented-dickey-fuller-test-results" class="level6">
+<h6 class="anchored" data-anchor-id="table-3-augmented-dickey-fuller-test-results">Table 3: Augmented Dickey-Fuller test results</h6>
+</section>
+</div>
+<p>The augmented Dickey-Fuller test shows that the null hypothesis was rejected at the 5% significance level for interest rates and inflation but not for the rest of the variables, implying that only interest rates and inflation are unit root stationary series.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable</th>
+<th style="text-align: right;">Test statistic</th>
+<th style="text-align: right;">p-value</th>
+<th style="text-align: left;">Stationarity</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">GDP</td>
 <td style="text-align: right;">-5.762</td>
-<td style="text-align: right;">5</td>
 <td style="text-align: right;">0.010</td>
+<td style="text-align: left;">Yes</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Interest rate</td>
-<td style="text-align: right;">-4.134</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">0.010</td>
+<td style="text-align: left;">Interest rates</td>
+<td style="text-align: right;">-3.871</td>
+<td style="text-align: right;">0.018</td>
+<td style="text-align: left;">Yes</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Inflation</td>
-<td style="text-align: right;">-3.855</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">0.018</td>
+<td style="text-align: right;">-6.272</td>
+<td style="text-align: right;">0.010</td>
+<td style="text-align: left;">Yes</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Exchange rate</td>
-<td style="text-align: right;">-4.249</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: left;">Exchange rates</td>
+<td style="text-align: right;">-4.346</td>
 <td style="text-align: right;">0.010</td>
+<td style="text-align: left;">Yes</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Commodity price</td>
-<td style="text-align: right;">-5.433</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: left;">Commodity prices</td>
+<td style="text-align: right;">-5.360</td>
 <td style="text-align: right;">0.010</td>
+<td style="text-align: left;">Yes</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Stock price</td>
-<td style="text-align: right;">-5.116</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: left;">Stock prices</td>
+<td style="text-align: right;">-5.094</td>
 <td style="text-align: right;">0.010</td>
+<td style="text-align: left;">Yes</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<p>The augmented Dickey-Fuller test shows that the null hypothesis was rejected at the 5% significance level, implies that all the series are unit-root stationary.</p>
+<div id="table4" style="text-align: center; color: #696969;">
+<section id="table-4-augmented-dickey-fuller-test-results-on-the-first-difference" class="level6">
+<h6 class="anchored" data-anchor-id="table-4-augmented-dickey-fuller-test-results-on-the-first-difference">Table 4: Augmented Dickey-Fuller test results on the first difference</h6>
+</section>
+</div>
+</section>
 </section>
 </section>
 </section>
@@ -357,15 +502,7 @@ Warning in adf.test(variables[, i]): p-value smaller than printed p-value</code>
 <h1>Methodology</h1>
 <section id="model-specification" class="level2">
 <h2 class="anchored" data-anchor-id="model-specification">Model specification</h2>
-<p>In this study, Bayesian Structural vector autoregression (SVAR) models is used to measure the dynamic and contemporaneous relationships between variables. The model is the following:</p>
-<p><span class="math display">\[\begin{align}
-B_0Y_t = b_0 + \sum_{i=1}^{p} B_iY_{t-i} + \epsilon_t
-\end{align}\]</span></p>
-<p><span class="math display">\[\begin{align}
-\epsilon_t|Y_{t-1} \sim iid(0_N, I_N)
-\end{align}\]</span></p>
-<p>In the model, <span class="math inline">\(Y_t\)</span> contains six variables ordered as: (1) real GDP growth, <span class="math inline">\(GDP_t\)</span>, (2) real interest rate, <span class="math inline">\(ICR_t\)</span>, (3) Inflation, <span class="math inline">\(INF_t\)</span>, (4) real exchange rate change from AUD to USD, <span class="math inline">\(EXR_t\)</span>, (5) commodity prices change <span class="math inline">\(ICP_t\)</span>, and (6) stock prices change <span class="math inline">\(STP_t\)</span>.</p>
-<p><span class="math display">\[\begin{align}
+<p>This study uses a Bayesian Structural vector autoregression (BSVAR) model to measure the dynamic and contemporaneous relationships between variables. The endogenous variables in the model are the following: <span class="math display">\[
 Y_t=
 \begin{pmatrix}
    GDP_t
@@ -375,17 +512,59 @@ Y_t=
 \\ICP_t
 \\STP_t
 \end{pmatrix}
-\end{align}\]</span></p>
+\]</span> <span class="math inline">\(Y_t\)</span> contains six variables ordered as</p>
+<p>&nbsp;&nbsp;&nbsp;(1) Real GDP, <span class="math inline">\(GDP_t\)</span>,<br>
+&nbsp;&nbsp;&nbsp;(2) Interest rates, <span class="math inline">\(ICR_t\)</span>,<br>
+&nbsp;&nbsp;&nbsp;(3) Inflation, <span class="math inline">\(INF_t\)</span>,<br>
+&nbsp;&nbsp;&nbsp;(4) Exchange rates from AUD to USD, <span class="math inline">\(EXR_t\)</span>,<br>
+&nbsp;&nbsp;&nbsp;(5) Commodity prices, <span class="math inline">\(ICP_t\)</span>, and<br>
+&nbsp;&nbsp;&nbsp;(6) Stock prices, <span class="math inline">\(STP_t\)</span>.</p>
+<section id="structural-form" class="level3">
+<h3 class="anchored" data-anchor-id="structural-form">Structural form</h3>
+<p>The Structural VAR model can be represented as follows: <span class="math display">\[
+B_0Y_t = b_0 + \sum_{i=1}^{p} B_iY_{t-i} + u_t
+\]</span> <span class="math display">\[
+u_t|Y_{t-1} \sim iid(0_N, I_N)
+\]</span> where</p>
+<p>&nbsp;&nbsp;&nbsp;<span class="math inline">\(Y_t\)</span> is an <span class="math inline">\(N \times 1\)</span> vector of endogenous variables at time <span class="math inline">\(t\)</span>,<br>
+&nbsp;&nbsp;&nbsp;<span class="math inline">\(B_0\)</span> is an <span class="math inline">\(N \times N\)</span> matrix capturing contemporaneous relationships between variables,<br>
+&nbsp;&nbsp;&nbsp;<span class="math inline">\(u_t\)</span> is an <span class="math inline">\(N \times 1\)</span> vector conditionally on <span class="math inline">\(Y_{t-1}\)</span> orthogonal structural shocks,<br>
+&nbsp;&nbsp;&nbsp;<span class="math inline">\(N\)</span> is the number of endogeneous variables, and <span class="math inline">\(p\)</span> is the lag length.</p>
 </section>
+<section id="reduced-form" class="level3">
+<h3 class="anchored" data-anchor-id="reduced-form">Reduced form</h3>
+<p>The VAR model can be represented as follows: <span class="math display">\[
+Y_t = \mu_0 + \sum_{i=1}^{p} A_iY_{t-i} + \epsilon_t
+\]</span> <span class="math display">\[
+\epsilon_t|Y_{t-1} \sim iid(0_N, \Sigma)
+\]</span> where</p>
+<p>&nbsp;&nbsp;&nbsp;<span class="math inline">\(Y_t\)</span> is an <span class="math inline">\(N \times 1\)</span> vector of endogenous variables at time <span class="math inline">\(t\)</span>,<br>
+&nbsp;&nbsp;&nbsp;<span class="math inline">\(A_i\)</span> is an <span class="math inline">\(N \times N\)</span> matrix of autoregressive slope parameters,<br>
+&nbsp;&nbsp;&nbsp;<span class="math inline">\(\mu_0\)</span> is an <span class="math inline">\(N \times 1\)</span> vector of constant terms,<br>
+&nbsp;&nbsp;&nbsp;<span class="math inline">\(\epsilon_t\)</span> is an <span class="math inline">\(N \times 1\)</span> vector of white noise error terms,<br>
+&nbsp;&nbsp;&nbsp;<span class="math inline">\(\Sigma\)</span> is an <span class="math inline">\(N \times N\)</span> covariance matrix of error terms <span class="math inline">\(\epsilon_t\)</span>, where <span class="math inline">\(\Sigma = B_0^{-1} {B_0^{-1}}'\)</span>,<br>
+&nbsp;&nbsp;&nbsp;<span class="math inline">\(N\)</span> is the number of endogeneous variables, and <span class="math inline">\(p\)</span> is the lag length.</p>
+</section>
+</section>
+</section>
+<section id="empirical-results" class="level1">
+<h1>Empirical Results</h1>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
 <section id="references" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
-<p>Majumder, M. K., Raghavan, M., &amp; Vespignani, J. (2022). The impact of commodity price volatility on fiscal balance and the role of real interest rate. Empirical Economics: Journal of the Institute for Advanced Studies, Vienna, Austria, 63(3), 1375–1402. https://doi.org/10.1007/s00181-021-02168-3</p>
+
+
 
 
 </section>
 </section>
 
-</main> <!-- /main -->
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-line-spacing="2" role="list">
+<div id="ref-2022" class="csl-entry" role="listitem">
+Majumder, M. K., Raghavan, M., &amp; Vespignani, J. (2022). The impact of commodity price volatility on fiscal balance and the role of real interest rate. <em>Empirical Economics</em>, <em>63</em>(3), 1375–1402. <a href="https://doi.org/10.1007/s00181-021-02168-3">https://doi.org/10.1007/s00181-021-02168-3</a>
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

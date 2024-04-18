@@ -1,193 +1,180 @@
 ---
-title: "The Effects of Monetary Policy on Commodity Prices: Evidence from the Australian Economy"
+title: "The Effects of Monetary Policy Shocks on Commodity Price: Evidence from the Australian Economy"
 author: "Inhye Kang"
 
 execute:
   echo: false
   
 bibliography: references.bib
+csl: apa.csl
 ---
 
-> **Abstract.** This research project aims to measure the effects of monetary policy using Bayesian Structural Vector Autoregressive Model (SVAR) in Australian economy from 1990 to 2023.
+> **Abstract.** This research project aims to measure the effects of monetary policy on commodity prices using the Bayesian Structural Vector Autoregressive Model (BSVAR) in the Australian economy from 1990 to 2023.
 >
-> **Keywords.** Monetary policy shocks, Structural VARs, Impulse response functions
+> **Keywords.** Monetary policy shocks, Commodity Prices, Structural VARs, Impulse response
 
 # Introduction
 
-This research project aims to measure the effects of monetary policy using a Bayesian Structural Vector Autoregressive Model (SVAR) in the Australian economy from 1990 to 2023. The question addressed in this study is: How does an increase in interest rate affect commodity prices in the Australian market?
+This research project aims to measure the effects of monetary policy on commodity prices using a Bayesian Structural Vector Autoregressive Model (BSVAR) in the Australian economy from 1990 to 2023. The question addressed in this study is: How does an increase in the cash rate target affect commodity prices in the Australian market?
 
-As commodity prices affect stakeholders, including businesses and government, the effect of change in commodity prices plays a large role in commodity-exporting countries like Australia. Majumder et al. (2022) argue that the lower real interest rate has a negative impact on commodity price volatility in both commodity-exporting countries, while a higher real interest rate increases the cost of borrowing, which reduces investment and output. This study aims to measure the monetary policy shocks on commodity prices using Bayesian Structural Vector Autoregression (SVAR), focusing on the Australian economy.
+As commodity prices affect stakeholders, including businesses and government, the effect of change in commodity prices plays a large role in commodity-exporting countries like Australia. @2022 argue that the lower real interest rates have a negative impact on commodity price volatility in both commodity-exporting countries, while higher real interest rates increase the cost of borrowing, which reduces investment and output. This study aims to measure the monetary policy shocks on commodity prices using the Bayesian Structural Vector Autoregression (BSVAR) model, focusing on the Australian economy.
 
 # Data
 
-The study includes data from the Reserve Bank of Australia (RBA), the Australian Bureau of Statistics (ABS), International Monetary Fund (IMF) and Yahoo Finance from 1990 to 2023, adjusted in quarterly frequency from 1990 Q1 to 2023 Q4, including 136 observations. The variables selected for our analysis includes:
+The study includes data from the Reserve Bank of Australia (RBA), the Australian Bureau of Statistics (ABS), and Yahoo Finance from 1990 to 2023, adjusted quarterly from 1990 Q1 to 2023 Q4, including 136 observations. The variables selected for our analysis include:
 
-**GDP (GDP)**: real GDP, expressed as per million AUD
-**Interest Rate (ICR)**: real interest rate where cash rate target less inflation (INF), expressed as a percentage
-**Inflation (INF)**: seasonally adjusted inflation, expressed as a percentage
-**Exchange rate (EXR)**: real exchange rate from AUD to USD, adjusted by the consumer price index of Australia and the United States, expressed in USD
-**Commodity prices (ICP)**: index of commodity prices where base year value 2022/23 is 100, adjusted by the consumer price index
-**Stock price (STP)**: real stock price using adjusted closing price of All Ordinaries Index (^AORD) divided by the consumer price index, expressed in AUD.
+|    **GDP (GDP)**: real GDP, expressed as per billion AUD
+|    **Interest rates (ICR)**: cash rate target, expressed as a percentage
+|    **Inflation (INF)**: seasonally adjusted inflation, expressed as a percentage
+|    **Exchange rates (EXR)**: exchange rate from AUD to USD, expressed in USD
+|    **Commodity prices (ICP)**: index of commodity prices where base year value 2022/23 is 100, expressed in AUD,
+|    **Stock prices (STP)**: stock price using the adjusted closing price of the All Ordinaries Index, expressed in AUD.
+
+[<span style="color: #696969;">Table 1](#table1-data-source) shows the details of the data source.
+```{r}
+source <- data.frame(
+  c('GDP', 'Interest rates', 'Inflation', 'Exchange rates', 'Commodity prices', 'Stock prices'),  
+  c('GGDPCVGDP', 'FIRMMCRTD', 'GCPIAGSAQP', 'FXRUSD', 'GRCPAIAD', '^AORD'),
+  c('RBA', 'RBA', 'RBA', 'RBA', 'RBA', 'Yahoo Finance'),
+  stringsAsFactors = FALSE  
+)
+colnames(source) <- c("Variable", "Code", "Data source")
+
+knitr::kable(source, format = "html")
+```
+<div id="table1-data-source" style="text-align: center; color: #696969;">
+###### Table 1: Data source
+</div>
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+```
 
 ```{r download variables}
 
 # Download seasonally adjusted quarterly inflation (%)
 
-inf_download = readrba::read_rba(series_id = "GCPIAGSAQP")
-inf_tmp = xts::xts(inf_download$value, inf_download$date)
-inf_tmp = window(inf_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
+inf_download <- readrba::read_rba(series_id = "GCPIAGSAQP")   # Inflation rate (%)
+inf_tmp <- xts::xts(inf_download$value, inf_download$date)
+inf_tmp <- window(inf_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
 
 # Download seasonally adjusted quarterly Real GDP ($ million AUD)
 
-gdp_download = readrba::read_rba(series_id = "GGDPCVGDP")   # Real GDP
-gdp_tmp = xts::xts(gdp_download$value, gdp_download$date)
-gdp_tmp = window(gdp_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
+gdp_download <- readrba::read_rba(series_id = "GGDPCVGDP")   # Real GDP
+gdp_tmp <- xts::xts(gdp_download$value, gdp_download$date)
+gdp_tmp <- window(gdp_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
+gdp_tmp <- gdp_tmp / 1000   # Real GDP ($ billion AUD)
 
 # Download daily averaged interest rates in percentage (%)
 
-icr_download = readrba::read_rba(series_id = "FIRMMCRTD")   # Cash Rate Target in %
-icr_tmp = xts::xts(icr_download$value, icr_download$date)
-icr_tmp = window(icr_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
+icr_download <- readrba::read_rba(series_id = "FIRMMCRTD")   # Cash rate target (%)
+icr_tmp <- xts::xts(icr_download$value, icr_download$date)
+icr_tmp <- window(icr_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
 
-# Download daily exchange rate (AUD/USD Exchange Rate) in USD
+# Download daily exchange rates (AUD/USD Exchange Rates) in USD
 
-exr_download = readrba::read_rba(series_id = "FXRUSD")   # Exchange rate of 1 AUD to USD
-exr_tmp = xts::xts(exr_download$value, exr_download$date)
-exr_tmp = window(exr_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
+exr_download <- readrba::read_rba(series_id = "FXRUSD")   # Exchange rates of 1 AUD to USD
+exr_tmp <- xts::xts(exr_download$value, exr_download$date)
+exr_tmp <- window(exr_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
 
-# Download monthly index of commodity prices
+# Download monthly index of commodity prices in AUD where base year value 2022/23 is 100
 
-icp_download = readrba::read_rba(series_id = "GRCPAIAD")   # Commodity prices Index
-icp_tmp = xts::xts(icp_download$value, icp_download$date)
-icp_tmp = window(icp_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
+icp_download <- readrba::read_rba(series_id = "GRCPAIAD")   # Commodity prices Index (AUD)
+icp_tmp <- xts::xts(icp_download$value, icp_download$date)
+icp_tmp <- window(icp_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
 
-# Download daily stock price (^AORD) in AUD
+# Download daily stock prices (^AORD) in AUD
 
-stp_download = tidyquant::tq_get("^AORD", from = "1990-01-01", to = "2023-12-31")
-stp_tmp = xts::xts(stp_download$adjusted, stp_download$date)
-stp_tmp = window(stp_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
-
-# Download quarterly CPI
-
-cpi_download = readabs::read_abs(series_id = "A2325846C")   # CPI
-cpi_tmp = xts::xts(cpi_download$value, cpi_download$date)
-cpi_tmp = window(cpi_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
-
-# Download quarterly CPI for AU/US from IMF
-library(imf.data)
-imfCPI <- load_datasets("CPI")
-cpiau = imfCPI$get_series(freq = "Q",
-                       ref_area ="AU",
-                       indicator = "PCPI_IX",
-                       start_period = "1990-01-01",
-                       end_period = "2023-12-31")
-cpiau$TIME_PERIOD = zoo::as.yearqtr(cpiau$TIME_PERIOD, format = "%Y-Q%q")
-cpiau_tmp = xts::xts(cpiau$Q.AU.PCPI_IX, cpiau$TIME_PERIOD)
-cpiau_tmp = as.numeric(as.character(cpiau_tmp))
-
-cpius = imfCPI$get_series(freq = "Q",
-                       ref_area ="US",
-                       indicator = "PCPI_IX",
-                       start_period = "1990-01-01",
-                       end_period = "2023-12-31")
-cpius$TIME_PERIOD = zoo::as.yearqtr(cpius$TIME_PERIOD, format = "%Y-Q%q")
-cpius_tmp = xts::xts(cpius$Q.US.PCPI_IX, cpius$TIME_PERIOD)
-cpius_tmp = as.numeric(as.character(cpius_tmp))
+stp_download <- tidyquant::tq_get("^AORD", from = "1990-01-01", to = "2023-12-31")   # Stock price (AUD)
+stp_tmp <- xts::xts(stp_download$adjusted, stp_download$date)
+stp_tmp <- window(stp_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12-31"))
 ```
 
-```{r quarterly system, message=FALSE}
+```{r quarterly system}
 
 # Convert variables into quarterly system
-
+           
 library(zoo)
-GDP = aggregate(gdp_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # real GDP ($ M)
-
-icr = aggregate(icr_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # cash rate target (%)
-
-INF = aggregate(inf_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE)) # inflation (%)
-
-exr = aggregate(exr_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # exchange rate (1 AUD/USD)
-
-icp = aggregate(icp_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # commodity price (Index)
-
-stp = aggregate(stp_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # stock price (AUD)
-
-cpi = aggregate(cpi_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # CPI (Index)
-# View(stp)
-## REAL terms
-# real interest rate (%)
-ICR = icr-INF
-# real exchange rate (AUD/USD)
-EXR = exr*(cpiau_tmp/cpius_tmp)
-# real commodity prices index
-ICP = icp*(100/cpi)
-# real stock price (AUD)
-STP = stp*(100/cpi)
+GDP <- aggregate(gdp_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # real GDP ($ M)
+ICR <- aggregate(icr_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # cash rate target (%)
+INF <- aggregate(inf_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE)) # inflation (%)
+EXR <- aggregate(exr_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # exchange rates (1 AUD/USD)
+ICP <- aggregate(icp_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # commodity prices (AUD)
+STP <- aggregate(stp_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # stock prices (AUD)
 ```
-GDP, interest rate, inflation, exchange rate, commodity prices, and stock prices are plotted in Figure 1.
-```{r time series plots, message=FALSE}
+GDP, interest rates, inflation, exchange rates, commodity prices, and stock prices are plotted in [<span style="color: #696969;">Figure 1](#figure1).
+
+```{r time series plots, fig.width=6.5, fig.height=6.5}
 #| echo: false
 #| message: false
 #| warning: false
-
+ 
 library(ggplot2)
 library(gridExtra)
 library(grid)
 
 plotGDP <- ggplot2::ggplot(data = GDP, aes(x = time(GDP), y = as.vector(GDP))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  labs(title = "GDP ($ million AUD)",
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  scale_y_continuous() + 
+  labs(title = "GDP ($ billion AUD)",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
 plotICR <- ggplot2::ggplot(data = ICR, aes(x = time(ICR), y = as.vector(ICR))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  geom_hline(yintercept = 1, linetype = "solid", color = "black", size = 0.5) +
-  labs(title = "Interest rate (%)",
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  geom_hline(yintercept = 0, linetype = "solid", color = "darkgrey", linewidth = 0.5) +
+  scale_y_continuous() + 
+  labs(title = "Interest rates (%)",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
 plotINF <- ggplot2::ggplot(data = INF, aes(x = time(INF), y = as.vector(INF))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  geom_hline(yintercept = 0, linetype = "solid", color = "black", size = 0.5) +
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  geom_hline(yintercept = 0, linetype = "solid", color = "darkgrey", linewidth = 0.5) +
+  scale_y_continuous() + 
   labs(title = "Inflation (%)",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
 plotEXR <- ggplot2::ggplot(data = EXR, aes(x = time(EXR), y = as.vector(EXR))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  geom_hline(yintercept = 1, linetype = "solid", color = "black", size = 0.5) +
-  labs(title = "Exchange rate (AUD/USD)",
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  geom_hline(yintercept = 1, linetype = "solid", color = "darkgrey", linewidth = 0.5) +
+  scale_y_continuous() + 
+  labs(title = "Exchange rates (AUD/USD)",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
 plotICP <- ggplot2::ggplot(data = ICP, aes(x = time(ICP), y = as.vector(ICP))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  labs(title = "Commodity prices (Index)",
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  scale_y_continuous() + 
+  labs(title = "Commodity prices ($ AUD)",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
 plotSTP <- ggplot2::ggplot(data = STP, aes(x = time(STP), y = as.vector(STP))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  labs(title = "Stock price ($ AUD)",
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  scale_y_continuous() + 
+  labs(title = "Stock prices ($ AUD)",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
@@ -200,87 +187,122 @@ grid.arrange(
 
 # grid.arrange(plotGDP, plotICR, plotINF, plotEXR, plotICP, plotSTP, nrow = 3, ncol = 2)
 ```
+<div id="figure1" style="text-align: center; color: #696969;">
+###### Figure 1: Time series plots of the variables
+</div>
+GDP exhibits an upward trend except for a trough during COVID-19. Interest rates depict a gradual downward trend; however, from 2022 Q4, there has been a significant increase in interest rates. Commodity and stock prices show a significant increase during the Global Financial Crisis.
 
-GDP exhibits an upward trend except for a trough during the period of COVID-19. Interest rate depict a gradual downward trend, however from 2022 Q4, there is a significant increase in interest rate. Commodity prices and stock prices show a significant increase during the Global Financial Crisis.
+[<span style="color: #696969;">Table 2](#table2) demonstrates the descriptive statistics of the variables.
+```{r descriptive statistics}
 
-In the model, all the variables except for interest rates and inflation are transformed in log difference form for percentage change interpretation. In this stage, only the sample including all variables ranging from 1990 Q2 to 2023 Q4 is considered in the following section.
+# Original dataset
+original_variables <- merge(GDP, ICR, INF, EXR, ICP, STP)
+colnames(original_variables) <- c("GDP", "Interest rates", "Inflation", "Exchange rates", "Commodity prices", "Stock prices")
 
+# Summary statistics
+summary_stats <- sapply(original_variables, function(x) {
+  c(Mean = mean(x, na.rm = TRUE),
+    SD = sd(x, na.rm = TRUE),
+    Min = min(x, na.rm = TRUE),
+    Max = max(x, na.rm = TRUE),
+    n = sum(!is.na(x)))
+})
+
+units <- c("GDP"="$ billion AUD ", "Interest rates"="Percentage", "Inflation"="Percentage", 
+           "Exchange rates"="$ USD", "Commodity prices"="$ AUD", "Stock prices"="$ AUD")
+
+summary_df <- as.data.frame(t(summary_stats))
+summary_df$Variable <- rownames(summary_df)
+summary_df$Unit <- units[summary_df$Variable]
+summary_df <- summary_df[, c("Variable", "Unit", "Mean", "SD", "Min", "Max", "n")]
+rownames(summary_df) <- NULL
+
+knitr::kable(summary_df, digits = 3)
+```
+<div id="table2" style="text-align: center; color: #696969;">
+###### Table 2: Summary of descriptive statistics
+</div>
+
+In our model, all variables except interest rates, inflation and exchange rates are transformed into a logarithmic scale.
 ```{r log scale}
-logGDP = diff(log(GDP))
-logEXR = diff(log(EXR))
-logICP = diff(log(ICP))
-logSTP = diff(log(STP))
+logGDP = log(GDP)
+logICP = log(ICP)
+logSTP = log(STP)
 ```
 
-```{r log difference plot}
+```{r}
+# Final dataset
+variables <- merge(logGDP, ICR, INF, EXR, logICP, logSTP)
+colnames(variables) <- c("GDP", "Interest rates", "Inflation", "Exchange rates", "Commodity prices", "Stock prices")
+```
+[<span style="color: #696969;">Figure 2](#figure2) shows
+```{r log difference plot,  fig.width=6.5, fig.height=6.5}
 #| echo: false
 #| message: false
 #| warning: false
 
 plotlogGDP <- ggplot2::ggplot(data = logGDP, aes(x = time(logGDP), y = as.vector(logGDP))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  geom_hline(yintercept = 0, linetype = "solid", color = "black", size = 0.5) +
-  labs(title = "GDP (%)",
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  labs(title = "GDP",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
 plotICR <- ggplot2::ggplot(data = ICR, aes(x = time(ICR), y = as.vector(ICR))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  geom_hline(yintercept = 1, linetype = "solid", color = "black", size = 0.5) +
-  labs(title = "Interest rate (%)",
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  geom_hline(yintercept = 0, linetype = "solid", color = "darkgrey", linewidth = 0.5) +
+  labs(title = "Interest rates (%)",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
 plotINF <- ggplot2::ggplot(data = INF, aes(x = time(INF), y = as.vector(INF))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  geom_hline(yintercept = 0, linetype = "solid", color = "black", size = 0.5) +
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  geom_hline(yintercept = 0, linetype = "solid", color = "darkgrey", linewidth = 0.5) +
   labs(title = "Inflation (%)",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
-plotlogEXR <- ggplot2::ggplot(data = logEXR, aes(x = time(logEXR), y = as.vector(logEXR))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  geom_hline(yintercept = 0, linetype = "solid", color = "black", size = 0.5) +
-  labs(title = "Exchange rate (%)",
+plotlogEXR <- ggplot2::ggplot(data = EXR, aes(x = time(EXR), y = as.vector(EXR))) +
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  geom_hline(yintercept = 1, linetype = "solid", color = "darkgrey", linewidth = 0.5) +
+  labs(title = "Exchange rates (AUD/USD)",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
 plotlogICP <- ggplot2::ggplot(data = logICP, aes(x = time(logICP), y = as.vector(logICP))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  geom_hline(yintercept = 0, linetype = "solid", color = "black", size = 0.5) +
-  labs(title = "Commodity price (%)",
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  labs(title = "Commodity prices",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
 plotlogSTP <- ggplot2::ggplot(data = logSTP, aes(x = time(logSTP), y = as.vector(logSTP))) +
-  geom_line(color = "blue", linewidth = 1) + 
-  geom_hline(yintercept = 0, linetype = "solid", color = "black", size = 0.5) +
-  labs(title = "Stock price (%)",
+  geom_line(color = "darkblue", linewidth = 0.5) + 
+  labs(title = "Stock prices",
        x = "Date",
        y = "") +
-  theme_minimal() +
+  theme_classic() +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
 grid.arrange(plotlogGDP, plotICR, plotINF, plotlogEXR, plotlogICP, plotlogSTP, nrow = 3, ncol = 2)
 ```
-
-## Descriptive statistics
+<div id="figure2" style="text-align: center; color: #696969;">
+###### Figure 2: Plot for the data in logarithmic scale
+</div>
 
 Table 1 shows that the summary of descriptive statistics. The mean, standard deviation, minimum and maximum is as follows:
 ```{r descriptive statistics, message=FALSE}
@@ -303,81 +325,95 @@ new_col_names <- c("n", "Mean", "Sd", "Min", "Max")
 knitr::kable(summary_stats, caption = "Table 1: Summary of descriptive statistics", digits = 3, col.names = new_col_names)
 ```
 
-## Diagonostic test
-### Autocorrelation tests
-```{r ACF}
+## Diagnostic tests
+### Autocorrelation/Partial autocorrelation function plots
+The autocorrelation test is used to identify the presence of serial correlation between a variable's current value and its lagged value, indicating that past values influence the current value. 
+ The autocorrelation function (ACF) plots... [<span style="color: #696969;">Figure 3](#figure3) shows that only the interest rates have non-zero autocorrelation for at least 20 lags, which implies that interest rates are non-stationary series. After the log transformation, the variables GDP, exchange rates, commodity, and stock prices imply stationarity.
+```{r ACF, fig.width=6.5, fig.height=7.5}
 #| echo: false
 #| message: false
 #| warning: false
-
+library(forecast)
 par(mfrow = c(3, 2))
-acf(logGDP, main = "GDP", plot = TRUE)
-acf(ICR, main = "Interest rate", plot = TRUE)
-acf(INF, main = "Inflation", plot = TRUE)
-acf(logEXR, main = "Exchange rate", plot = TRUE)
-acf(logICP, main = "Commodity price", plot = TRUE)
-acf(logSTP, main = "Stock price", plot = TRUE)
+for (i in 1:ncol(variables)) {
+  Acf(variables[, i], main = colnames(variables)[i])
+}
 ```
-The autocorrelation function (ACF) plots show that only the interest rate has non-zero autocorrelation for at least 20 lags, which implies that interest rate is non-stationary series. After the log difference transformation, the variables GDP, exchange rate, commodity prices and stock prices implies stationarity.
+<div id="figure3" style="text-align: center; color: #696969;">
+###### Figure 3: Plots of autocorrelation functions
+</div>
 
-```{r PACF}
+
+The partial autocorrelation function (PACF) plots... 
+[<span style="color: #696969;">Figure 4](#figure4) shows that the partial autocorrelation for interest rates is significant at first lag. The partial autocorrelation for GDP, inflation, exchange rates, commodity prices and stock prices is significant at lags 5, 2, 8, 4, and 4, respectively.
+```{r PACF, fig.width=6.5, fig.height=7.5}
 #| echo: false
 #| message: false
 #| warning: false
-
+  
 par(mfrow = c(3, 2))
-pacf(logGDP, main = "logGDP", plot = TRUE)
-pacf(ICR, main = "ICR", plot = TRUE)
-pacf(INF, main = "INF", plot = TRUE)
-pacf(logEXR, main = "logEXR", plot = TRUE)
-pacf(logICP, main = "logICP", plot = TRUE)
-pacf(logSTP, main = "logSTP", plot = TRUE)
+for (i in 1:ncol(variables)) {
+  Pacf(variables[, i], main = colnames(variables)[i])
+}
 ```
-The partial autocorrelation function (PACF) plots show that the partial autocorrelation for interest rate is significant at first lag. The partial autocorrelation for GDP, inflation, exchange rate, commodity prices and stock prices is significant at lags 5, 2, 8, 4, and 4, respectively.
+<div id="figure4" style="text-align: center; color: #696969;">
+###### Figure 4: Plots of partial autocorrelation functions
+</div>
 
 
-## Unit root test
-### Augmented Dickey-Fuller test
+### Unit root test
+#### Augmented Dickey-Fuller test
 
-To test the presence of unit-root, Augmented Dickey-Fuller Test of the null hypothesis of unit-root non-stationarity was performed. 
 
-```{r ADF on level, message=FALSE}
+The augmented Dickey-Fuller test of the null hypothesis of unit root nonstationarity was performed to test the presence of the unit root. 
+```{r ADF on the level}
 #| echo: false
 #| message: false
 #| warning: false
-
 library(tseries)
-# ADF on level
-adf <- as.data.frame(matrix(nrow=6,ncol=3,NA))
-rownames(adf) <- colnames(variables)
-colnames(adf) <- c("Test statistic","Lag order", "p-value")
+adf <- as.data.frame(matrix(nrow=ncol(variables), ncol=4, NA))
+colnames(adf) <- c("Variable", "Test statistic", "p-value", "Stationarity")
+adf$Variable <- colnames(variables)
 
 for (i in 1: ncol(variables)){
-  adf_tmp                 <-  adf.test(variables[,i])
-  adf[i,"Test statistic"]  <-  round(as.numeric(adf_tmp[1]),3)
-  adf[i,"Lag order"]      <-  as.numeric(adf_tmp[2])
-  adf[i,"p-value"]        <-  round(as.numeric(adf_tmp[4]),3)
+  adf_tmp                  <-  adf.test(variables[,i])
+  adf[i, "Test statistic"] <- round(as.numeric(adf_tmp$statistic), 3)
+  adf[i, "p-value"]        <- round(as.numeric(adf_tmp$p.value), 3)
+  adf[i, "Stationarity"]   <- ifelse(adf[i, "p-value"] >= 0.05, "No", "Yes")
 }
 
 knitr::kable(adf, index=TRUE)
 ```
-The augmented Dickey-Fuller test shows that the null hypothesis was rejected at the 5% significance level, implies that all the series are unit-root stationary.
+<div id="table3" style="text-align: center; color: #696969;">
+###### Table 3: Augmented Dickey-Fuller test results
+</div>
+
+The augmented Dickey-Fuller test shows that the null hypothesis was rejected at the 5% significance level for interest rates and inflation but not for the rest of the variables, implying that only interest rates and inflation are unit root stationary series.
+
+```{r ADF on the first diffrence}
+diff_variables <- diff(variables)
+
+adf_diff <- as.data.frame(matrix(nrow=ncol(diff_variables), ncol=4, NA))
+colnames(adf_diff) <- c("Variable", "Test statistic", "p-value", "Stationarity")
+adf_diff$Variable <- colnames(diff_variables)
+
+for (i in 1: ncol(diff_variables)){
+  adf_tmp2                      <-  adf.test(diff_variables[,i])
+  adf_diff[i, "Test statistic"] <- round(as.numeric(adf_tmp2$statistic), 3)
+  adf_diff[i, "p-value"]        <- round(as.numeric(adf_tmp2$p.value), 3)
+  adf_diff[i, "Stationarity"]   <- ifelse(adf_diff[i, "p-value"] >= 0.05, "No", "Yes")
+}
+
+knitr::kable(adf_diff, index=TRUE)
+```
+<div id="table4" style="text-align: center; color: #696969;">
+###### Table 4: Augmented Dickey-Fuller test results on the first difference
+</div>
 
 # Methodology
 ## Model specification
-In this study, Bayesian Structural vector autoregression (SVAR) models is used to measure the dynamic and contemporaneous relationships between variables. The model is the following:
-
-\begin{align}
-B_0Y_t = b_0 + \sum_{i=1}^{p} B_iY_{t-i} + \epsilon_t
-\end{align}
-
-\begin{align}
-\epsilon_t|Y_{t-1} \sim iid(0_N, I_N)
-\end{align}
-
-In the model, $Y_t$ contains six variables ordered as: (1) real GDP growth, $GDP_t$, (2) real interest rate, $ICR_t$, (3) Inflation, $INF_t$, (4) real exchange rate change from AUD to USD, $EXR_t$, (5) commodity prices change $ICP_t$, and (6) stock prices change $STP_t$.
-
-\begin{align}
+This study uses a Bayesian Structural vector autoregression (BSVAR) model to measure the dynamic and contemporaneous relationships between variables. The endogenous variables in the model are the following:
+$$
 Y_t= 
 \begin{pmatrix}
    GDP_t
@@ -387,9 +423,56 @@ Y_t=
  \\ICP_t
  \\STP_t
 \end{pmatrix}
-\end{align}
+$$
+$Y_t$ contains six variables ordered as 
+
+|    (1) Real GDP, $GDP_t$, 
+|    (2) Interest rates, $ICR_t$, 
+|    (3) Inflation, $INF_t$, 
+|    (4) Exchange rates from AUD to USD, $EXR_t$, 
+|    (5) Commodity prices, $ICP_t$, and 
+|    (6) Stock prices, $STP_t$.
+
+### Structural form
+The Structural VAR model can be represented as follows:
+$$
+B_0Y_t = b_0 + \sum_{i=1}^{p} B_iY_{t-i} + u_t
+$$
+$$
+u_t|Y_{t-1} \sim iid(0_N, I_N)
+$$
+where 
+
+|    $Y_t$ is an $N \times 1$ vector of endogenous variables at time $t$, 
+|    $B_0$ is an $N \times N$ matrix capturing contemporaneous relationships between variables,
+|    $u_t$ is an $N \times 1$ vector conditionally on $Y_{t-1}$ orthogonal structural shocks,
+|    $N$ is the number of endogeneous variables, and $p$ is the lag length.
+
+### Reduced form
+The VAR model can be represented as follows:
+$$
+Y_t = \mu_0 + \sum_{i=1}^{p} A_iY_{t-i} + \epsilon_t
+$$
+$$
+\epsilon_t|Y_{t-1} \sim iid(0_N, \Sigma)
+$$
+where 
+
+|    $Y_t$ is an $N \times 1$ vector of endogenous variables at time $t$, 
+|    $A_i$ is an $N \times N$ matrix of autoregressive slope parameters,
+|    $\mu_0$ is an $N \times 1$ vector of constant terms,
+|    $\epsilon_t$ is an $N \times 1$ vector of white noise error terms,
+|    $\Sigma$ is an $N \times N$ covariance matrix of error terms $\epsilon_t$, where $\Sigma = B_0^{-1} {B_0^{-1}}'$,
+|    $N$ is the number of endogeneous variables, and $p$ is the lag length.
+
+
+# Empirical Results
+
+
+
+# Conclusion
 
 
 
 ## References {.unnumbered}
-Majumder, M. K., Raghavan, M., & Vespignani, J. (2022). The impact of commodity price volatility on fiscal balance and the role of real interest rate. Empirical Economics: Journal of the Institute for Advanced Studies, Vienna, Austria, 63(3), 1375–1402. https://doi.org/10.1007/s00181-021-02168-3
+
