@@ -95,7 +95,7 @@ stp_tmp <- window(stp_tmp, start = as.Date("1990-01-01"), end = as.Date("2023-12
 ```{r quarterly system}
 
 # Convert variables into quarterly system
-
+           
 library(zoo)
 GDP <- aggregate(gdp_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # real GDP ($ M)
 ICR <- aggregate(icr_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # cash rate target (%)
@@ -107,8 +107,13 @@ STP <- aggregate(stp_tmp, as.yearqtr, function(x) mean(x, na.rm = TRUE))  # stoc
 GDP, interest rates, inflation, exchange rates, commodity prices, and stock prices are plotted in [<span style="color: #696969;">Figure 1](#figure1).
 
 ```{r time series plots, fig.width=6.5, fig.height=6.5}
+#| echo: false
+#| message: false
+#| warning: false
+ 
 library(ggplot2)
 library(gridExtra)
+library(grid)
 
 plotGDP <- ggplot2::ggplot(data = GDP, aes(x = time(GDP), y = as.vector(GDP))) +
   geom_line(color = "darkblue", linewidth = 0.5) + 
@@ -173,7 +178,14 @@ plotSTP <- ggplot2::ggplot(data = STP, aes(x = time(STP), y = as.vector(STP))) +
   theme(plot.title = element_text(hjust = 0.5), 
         axis.text.x = element_text(angle = 45, hjust = 1))
 
-grid.arrange(plotGDP, plotICR, plotINF, plotEXR, plotICP, plotSTP, nrow = 3, ncol = 2)
+grid.arrange(
+  plotGDP, plotICR, plotINF, plotEXR, plotICP, plotSTP, 
+  nrow = 3, 
+  ncol = 2,
+  top = textGrob("Figure 1", gp = gpar(fontface = "bold", fontsize = 15))
+)
+
+# grid.arrange(plotGDP, plotICR, plotINF, plotEXR, plotICP, plotSTP, nrow = 3, ncol = 2)
 ```
 <div id="figure1" style="text-align: center; color: #696969;">
 ###### Figure 1: Time series plots of the variables
@@ -225,6 +237,10 @@ colnames(variables) <- c("GDP", "Interest rates", "Inflation", "Exchange rates",
 ```
 [<span style="color: #696969;">Figure 2](#figure2) shows
 ```{r log difference plot,  fig.width=6.5, fig.height=6.5}
+#| echo: false
+#| message: false
+#| warning: false
+
 plotlogGDP <- ggplot2::ggplot(data = logGDP, aes(x = time(logGDP), y = as.vector(logGDP))) +
   geom_line(color = "darkblue", linewidth = 0.5) + 
   labs(title = "GDP",
@@ -288,13 +304,35 @@ grid.arrange(plotlogGDP, plotICR, plotINF, plotlogEXR, plotlogICP, plotlogSTP, n
 ###### Figure 2: Plot for the data in logarithmic scale
 </div>
 
+Table 1 shows that the summary of descriptive statistics. The mean, standard deviation, minimum and maximum is as follows:
+```{r descriptive statistics, message=FALSE}
+#| echo: false
+#| message: false
+#| warning: false
+
+# Final dataset
+variables = merge(logGDP, ICR, INF, logEXR, logICP, logSTP)
+colnames(variables) = c("GDP", "Interest rate", "Inflation", "Exchange rate", "Commodity price", "Stock price")
+variables <- variables[-1, ]
+View(variables)
+
+library(psych)
+library(dplyr)
+#library(knitr)
+summary_stats_full = psych::describe(variables[, c("GDP", "Interest rate", "Inflation", "Exchange rate", "Commodity price", "Stock price")], na.rm = TRUE)
+summary_stats = summary_stats_full[, c("n", "mean", "sd", "min", "max")]
+new_col_names <- c("n", "Mean", "Sd", "Min", "Max")
+knitr::kable(summary_stats, caption = "Table 1: Summary of descriptive statistics", digits = 3, col.names = new_col_names)
+```
 
 ## Diagnostic tests
 ### Autocorrelation/Partial autocorrelation function plots
 The autocorrelation test is used to identify the presence of serial correlation between a variable's current value and its lagged value, indicating that past values influence the current value. 
-
-The autocorrelation function (ACF) plots... [<span style="color: #696969;">Figure 3](#figure3) shows that only the interest rates have non-zero autocorrelation for at least 20 lags, which implies that interest rates are non-stationary series. After the log transformation, the variables GDP, exchange rates, commodity, and stock prices imply stationarity.
+ The autocorrelation function (ACF) plots... [<span style="color: #696969;">Figure 3](#figure3) shows that only the interest rates have non-zero autocorrelation for at least 20 lags, which implies that interest rates are non-stationary series. After the log transformation, the variables GDP, exchange rates, commodity, and stock prices imply stationarity.
 ```{r ACF, fig.width=6.5, fig.height=7.5}
+#| echo: false
+#| message: false
+#| warning: false
 library(forecast)
 par(mfrow = c(3, 2))
 for (i in 1:ncol(variables)) {
@@ -305,9 +343,14 @@ for (i in 1:ncol(variables)) {
 ###### Figure 3: Plots of autocorrelation functions
 </div>
 
+
 The partial autocorrelation function (PACF) plots... 
 [<span style="color: #696969;">Figure 4](#figure4) shows that the partial autocorrelation for interest rates is significant at first lag. The partial autocorrelation for GDP, inflation, exchange rates, commodity prices and stock prices is significant at lags 5, 2, 8, 4, and 4, respectively.
 ```{r PACF, fig.width=6.5, fig.height=7.5}
+#| echo: false
+#| message: false
+#| warning: false
+  
 par(mfrow = c(3, 2))
 for (i in 1:ncol(variables)) {
   Pacf(variables[, i], main = colnames(variables)[i])
@@ -321,8 +364,12 @@ for (i in 1:ncol(variables)) {
 ### Unit root test
 #### Augmented Dickey-Fuller test
 
+
 The augmented Dickey-Fuller test of the null hypothesis of unit root nonstationarity was performed to test the presence of the unit root. 
 ```{r ADF on the level}
+#| echo: false
+#| message: false
+#| warning: false
 library(tseries)
 adf <- as.data.frame(matrix(nrow=ncol(variables), ncol=4, NA))
 colnames(adf) <- c("Variable", "Test statistic", "p-value", "Stationarity")
