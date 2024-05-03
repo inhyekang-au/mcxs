@@ -9,15 +9,15 @@ bibliography: references.bib
 csl: apa.csl
 ---
 
-> **Abstract.** This research project aims to measure the effects of monetary policy shocks on stock price volatility using the Bayesian Structural Vector Autoregressive Model (BSVAR) in the Australian economy from 1990 to 2023.
+> **Abstract.** This research project aims to measure the effects of monetary policy shocks on stock price volatility using the Bayesian Structural Vector Autoregressive Model in the Australian economy from 1990 to 2023.
 >
-> **Keywords.** Monetary policy shocks, Stock prices, Stock price volatility, Structural VARs, Impulse response
+> **Keywords.** Bayesian Structural VARs, Monetary policy shocks, Stock price volatility, Impulse response
 
 # Introduction
 
-This research project aims to measure the effects of monetary policy shocks on stock price volatility using a Bayesian Structural Vector Autoregressive Model (BSVAR) in the Australian economy from 1990 to 2023. The question addressed in this study is: How does an increase in the cash rate target affect stock price volatility in the Australian market?
+This research project aims to measure the effects of monetary policy shocks on stock price volatility using a Bayesian Structural Vector Autoregressive Model in the Australian economy from 1990 to 2023. The question addressed in this study is: How does an increase in the cash rate target affect stock price volatility in the Australian market?
 
-The behaviour and decisions of stakeholders--including investors, businesses, and financial institutions--in financial markets are primarily affected by stock price volatility. As such, the effect of change in stock prices plays a large role in Australian economy. This study aims to measure the monetary policy shocks on stock price volatility using the Bayesian Structural Vector Autoregression (BSVAR) model, focusing on the Australian economy.
+The behaviour and decisions of stakeholders--including investors, businesses, and financial institutions--in financial markets are primarily affected by stock price volatility. As such, the effect of change in stock prices plays a large role in Australian economy. This study aims to measure the monetary policy shocks on stock price volatility using the Bayesian Structural Vector Autoregression model, focusing on the Australian economy.
 
 # Data
 
@@ -28,12 +28,12 @@ The study includes data from the Reserve Bank of Australia (RBA), the Australian
 |    **Consumer price index (CPI)**: All groups Consumer Price Index, expressed as an index number
 |    **Exchange rates (EXR)**: exchange rates from AUD to USD, expressed in USD
 |    **Stock prices (STP)**: stock prices using the adjusted closing price of the All Ordinaries Index, expressed in AUD
-|    **Stock price volatility (VOL)**: the log of bipower variation calculated using the log of the sum of the  
+|    **Stock price volatility (VOL)**: the log of bipower variation calculated using the log of the sum of the
 |    multiplication of consecutive absolute logarithmic returns of stock prices (STP) multiplied by normalisation
 |    factor $\frac{\pi}{2}$ where $log(\frac{\pi}{2} \sum_{t=2}^{T} |r_{t}| \cdot |r_{t-1}|)$
 
 [<span style="color: #696969;">Table 1](#table1-data-source) shows the details of the data source.
-```{r}
+```{r source}
 source <- data.frame(
   c('GDP', 'Interest rates', 'Consumer Price Index', 'Exchange rates', 'Stock prices'),  
   c('GGDPCVGDP', 'FIRMMCRTD', 'A2325846C', 'FXRUSD', '^AORD'),
@@ -42,13 +42,13 @@ source <- data.frame(
 )
 colnames(source) <- c("Variable", "Code", "Data source")
 
-knitr::kable(source, format = "html")
+knitr::kable(source)
 ```
-<div id="table1-data-source" style="text-align: center; color: #696969;">
+<div id="table1" style="text-align: center; color: #696969;">
 ###### Table 1: Data source
 </div>
 
-```{r}
+```{r global options}
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
@@ -113,9 +113,10 @@ VOL <- xts::period.apply(bpv_daily, INDEX = quarters, FUN = sum)
 VOL <- log(VOL)
 index(VOL) <- as.yearqtr(index(VOL), format = "%Y Q%q")  # stock price volatility
 ```
-GDP, interest rates, consumer price index, exchange rates, stock prices and stock price volatility are plotted in [<span style="color: #696969;">Figure 1](#figure1). GDP exhibits an upward trend except for a trough during COVID-19. Interest rates depict a gradual downward trend; however, from 2022 Q4, there has been a significant increase in interest rates. There is an overall upward trend of stock prices, however, with the exception during the Global Financial Crisis where the stock prices has shown great volatility by increasing and decreasing in large amount. 
 
-```{r time series plots, fig.width=6.5, fig.height=6}
+GDP, interest rates, consumer price index, exchange rates, stock prices and stock price volatility are plotted in [<span style="color: #696969;">Figure 1](#figure1). GDP exhibits an upward trend except for a trough during COVID-19. Interest rates depict a gradual downward trend; however, from 2022 Q4, there has been a significant increase in interest rates. There is an overall upward trend of stock prices, however, with the exception during the Global Financial Crisis where the stock prices has shown great volatility by increasing and decreasing in large amount.
+
+```{r time series plots, fig.width=7, fig.height=6.5}
 library(ggplot2)
 library(gridExtra)
 
@@ -189,7 +190,6 @@ grid.arrange(plotGDP, plotICR, plotCPI, plotEXR, plotSTP, plotVOL, nrow = 3, nco
 
 [<span style="color: #696969;">Table 2](#table2) demonstrates the descriptive statistics of the variables from 1990 Q1 to 2023 Q4.
 ```{r descriptive statistics}
-
 # Original dataset
 original_variables <- merge(GDP, ICR, CPI, EXR, STP, VOL)
 colnames(original_variables) <- c("GDP", "Interest rates", "Consumer price index", "Exchange rates", "Stock prices", "Stock price volatility")
@@ -225,13 +225,14 @@ logCPI = log(CPI)
 logSTP = log(STP)
 ```
 
-```{r}
+```{r final dataset}
 # Final dataset
 variables <- merge(logGDP, ICR, logCPI, EXR, logSTP, VOL)
 colnames(variables) <- c("GDP", "Interest rates", "Consumer price index", "Exchange rates", "Stock prices", "Stock price volatility")
 ```
+
 [<span style="color: #696969;">Figure 2](#figure2) shows
-```{r log difference plot,  fig.width=6.5, fig.height=6}
+```{r log difference plot,  fig.width=7, fig.height=6.5}
 plotlogGDP <- ggplot2::ggplot(data = logGDP, aes(x = time(logGDP), y = as.vector(logGDP))) +
   geom_line(color = "darkblue", linewidth = 0.5) + 
   labs(title = "GDP",
@@ -286,12 +287,15 @@ grid.arrange(plotlogGDP, plotICR, plotlogCPI, plotEXR, plotlogSTP, plotVOL, nrow
 </div>
 
 
-## Diagnostic tests
-### Autocorrelation/Partial autocorrelation function plots
-The autocorrelation test is used to identify the presence of serial correlation between a variable's current value and its lagged value, indicating that past values influence the current value. 
+## Diagnostic Tests
+
+### Autocorrelation/Partial autocorrelation Function Plots
+
+The autocorrelation test is used to identify the presence of serial correlation between a variable's current value and its lagged value, indicating that past values influence the current value.
 
 The autocorrelation function (ACF) plots in [<span style="color: #696969;">Figure 3](#figure3) shows that all the variables except for stock price volatility have non-zero autocorrelation for at least 20 lags, implying that only stock price volatility is a stationary series and the other variables are highly persistent.
-```{r ACF, fig.width=6.5, fig.height=6}
+
+```{r ACF, fig.width=7.5, fig.height=7}
 library(forecast)
 par(mfrow = c(3, 2))
 for (i in 1:ncol(variables)) {
@@ -302,8 +306,10 @@ for (i in 1:ncol(variables)) {
 ###### Figure 3: Plots of autocorrelation functions
 </div>
 
+
 The partial autocorrelation function (PACF) plots in [<span style="color: #696969;">Figure 4](#figure4) shows that the partial autocorrelation for all the variables are significant at the first lag. The partial autocorrelation for exchange rates is also significant at 2.
-```{r PACF, fig.width=6.5, fig.height=6}
+
+```{r PACF, fig.width=7.5, fig.height=7}
 par(mfrow = c(3, 2))
 for (i in 1:ncol(variables)) {
   Pacf(variables[, i], main = colnames(variables)[i])
@@ -313,13 +319,13 @@ for (i in 1:ncol(variables)) {
 ###### Figure 4: Plots of partial autocorrelation functions
 </div>
 
+### Unit Root Test
 
-### Unit root test
-#### Augmented Dickey-Fuller test
+#### Augmented Dickey-Fuller Test
 
-The augmented Dickey-Fuller test of the null hypothesis of unit root nonstationarity was performed to test the presence of the unit root. 
+The augmented Dickey-Fuller test of the null hypothesis of unit root nonstationarity was performed to test the presence of the unit root.
 
-[<span style="color: #696969;">Table 3](#table3) shows that the null hypothesis was not rejected at the 1% significance level for all the variables but not for stock price volatility, implying that all the variables except for stock price volatility are nonstationary series. However, stock price volatility is the log of bipower variation and took logarithmic scale twice, 
+[<span style="color: #696969;">Table 3](#table3) shows that the null hypothesis was not rejected at the 1% significance level for all the variables but not for stock price volatility, implying that all the variables except for stock price volatility are nonstationary series. However, stock price volatility is the log of bipower variation and took logarithmic scale twice,
 
 ```{r ADF on the level}
 library(urca)
@@ -329,6 +335,7 @@ colnames(adf) <- c("Variable", "Test statistic", "Critical value", "Stationarity
 adf$Variable <- colnames(variables)
 
 for (i in 1: ncol(variables)) {
+  lag_order <- trunc((length(variables[, i]) - 1)^(1/3))
   adf_test1 <- ur.df(variables[, i], type = "trend", lags = trunc((length(variables[, i]) - 1)^(1/3)), selectlags = "AIC")
   adf_test2 <- ur.df(variables[, i], type = "drift", lags = trunc((length(variables[, i]) - 1)^(1/3)), selectlags = "AIC")
   if (colnames(variables)[i] %in% c("GDP", "Consumer price index", "Stock prices")) {
@@ -340,7 +347,8 @@ for (i in 1: ncol(variables)) {
   }
   adf[i, "Test statistic"] <- round(as.numeric(test_statistic), 3)
   adf[i, "Critical value"] <- round(as.numeric(critical_value_1pct), 3)
-  adf[i, "Stationarity"] <- ifelse(test_statistic < critical_value_1pct, "Yes", "No") 
+  adf[i, "Stationarity"] <- ifelse(test_statistic < critical_value_1pct, "Yes", "No")
+  adf[i, "Lag order"] <- lag_order
 }
 
 knitr::kable(adf)
@@ -359,6 +367,7 @@ colnames(adf_diff) <- c("Variable", "Test statistic", "Critical value", "Station
 adf_diff$Variable <- colnames(diff_variables)
 
 for (i in 1: ncol(diff_variables)) {
+  lag_order <- trunc((length(diff_variables[, i]) - 1)^(1/3))
   adf_test1 <- ur.df(diff_variables[, i], type = "drift", lags = trunc((length(variables[, i]) - 1)^(1/3)), selectlags = "AIC")
   adf_test2 <- ur.df(diff_variables[, i], type = "none", lags = trunc((length(variables[, i]) - 1)^(1/3)), selectlags = "AIC")
   if (colnames(diff_variables)[i] %in% c("GDP", "Consumer price index", "Stock prices")) {
@@ -371,6 +380,7 @@ for (i in 1: ncol(diff_variables)) {
   adf_diff[i, "Test statistic"] <- round(as.numeric(test_statistic), 3)
   adf_diff[i, "Critical value"] <- round(as.numeric(critical_value_1pct), 3)
   adf_diff[i, "Stationarity"] <- ifelse(test_statistic < critical_value_1pct, "Yes", "No") 
+  adf_diff[i, "Lag order"] <- lag_order
 }
 
 knitr::kable(adf_diff)
@@ -380,8 +390,10 @@ knitr::kable(adf_diff)
 </div>
 
 # Methodology
-## Model specification
-This study uses a Bayesian Structural vector autoregression (BSVAR) model to measure the dynamic and contemporaneous relationships between variables. The endogenous variables in the model are the following:
+
+## Model Specification
+
+This study uses a Bayesian Structural vector autoregression (BSVAR) model to measure the dynamic and contemporaneous relationships between variables. The endogenous variables in the model are the following: 
 $$
 Y_t= 
 \begin{pmatrix}
@@ -392,42 +404,44 @@ Y_t=
  \\stp_t
  \\vol_t
 \end{pmatrix}
-$$
-$Y_t$ contains six variables ordered as 
+$$ 
+$Y_t$ contains six variables ordered as
 
-|    (1) Real GDP, $gdp_t$, 
-|    (2) Interest rates, $ICR_t$, 
-|    (3) Consumer price index, $cpi_t$, 
-|    (4) Exchange rates from AUD to USD, $EXR_t$, 
-|    (5) Stock prices, $stp_t$, and 
+|    (1) Real GDP, $gdp_t$,
+|    (2) Interest rates, $ICR_t$,
+|    (3) Consumer price index, $cpi_t$,
+|    (4) Exchange rates from AUD to USD, $EXR_t$,
+|    (5) Stock prices, $stp_t$, and
 |    (6) Stock price volatility, $vol_t$.
 
-### Structural form
-The Structural VAR model can be represented as follows:
-$$
-B_0Y_t = b_0 + \sum_{i=1}^{p} B_iY_{t-i} + u_t
-$$
-$$
-u_t|Y_{t-1} \sim iid(0_N, I_N)
-$$
-where 
+### Structural Form
 
-|    $Y_t$ is an $N \times 1$ vector of endogenous variables at time $t$, 
+The Structural VAR model can be represented as follows: 
+$$
+\begin{gather}
+B_0Y_t = b_0 + \sum_{i=1}^{p} B_iY_{t-i} + u_t \\
+u_t|Y_{t-1} \sim iid(0_N, I_N)
+\end{gather}
+$$ 
+where
+
+|    $Y_t$ is an $N \times 1$ vector of endogenous variables at time $t$,
 |    $B_0$ is an $N \times N$ matrix capturing contemporaneous relationships between variables,
 |    $u_t$ is an $N \times 1$ vector conditionally on $Y_{t-1}$ orthogonal structural shocks,
 |    $N$ is the number of endogeneous variables, and $p$ is the lag length.
 
-### Reduced form
-The VAR model can be represented as follows:
-$$
-Y_t = \mu_0 + \sum_{i=1}^{p} A_iY_{t-i} + \epsilon_t
-$$
-$$
-\epsilon_t|Y_{t-1} \sim iid(0_N, \Sigma)
-$$
-where 
+### Reduced Form
 
-|    $Y_t$ is an $N \times 1$ vector of endogenous variables at time $t$, 
+The VAR model can be represented as follows: 
+$$
+\begin{gather}
+Y_t = \mu_0 + \sum_{i=1}^{p} A_iY_{t-i} + \epsilon_t \\
+\epsilon_t|Y_{t-1} \sim iid(0_N, \Sigma)
+\end{gather}
+$$ 
+where
+
+|    $Y_t$ is an $N \times 1$ vector of endogenous variables at time $t$,
 |    $A_i$ is an $N \times N$ matrix of autoregressive slope parameters,
 |    $\mu_0$ is an $N \times 1$ vector of constant terms,
 |    $\epsilon_t$ is an $N \times 1$ vector of white noise error terms,
@@ -435,27 +449,535 @@ where
 |    $N$ is the number of endogeneous variables, and $p$ is the lag length.
 
 # Estimation Framework
-## Baseline Model Estimation Procedure
+
+## Baseline Model
+
+### Estimation Procedure
+
+The reduced form can be represented in a matrix form as follows: 
+$$
+\begin{gather}
+Y = XA + E \\
+\\ E|X \sim MN_{T \times N}(0_{T \times N},\Sigma,I_T) \\ 
+\end{gather} 
+$$ 
+where
+
+|    $A_{K \times N}=(\mu_0', A_1',...,A_p')'$,
+|    $Y_{T \times N}=(y_1', y_2',...,y_T')'$,
+|    $X_{T \times K}=(x_1', x_2',...,x_T')'$,
+|    $x_{t K \times 1}=(1, y_{t-1},...,y_{t-p})'$ for t = 1, ... , T,
+|    $E_{T \times N}=(\epsilon_1', \epsilon_2',...,\epsilon_T')'$, and
+|    $K = 1 + pN$.
+
+$$
+$$
+
+For estimation, the **Bayes' theorem** is used to derive the joint posterior distribution for $A$ and $\Sigma$.
+$$
+\begin{align}
+\underbrace{P(A,\Sigma|Y,X)}_{\text{Posterior}} &\propto L(A,\Sigma|Y,X) \cdot P(A,\Sigma) 
+\\ &\propto \underbrace{L(A,\Sigma|Y,X)}_{\text{Likelihood function}} \cdot \underbrace{P(A|\Sigma) \cdot P(\Sigma)}_{\text{Prior}}
+\end{align}
+$$ 
+This implies the following form for the kernel of the **likelihood function**: 
+$$
+\begin{align}
+L(A,\Sigma|Y,X) &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \exp \left\{-\frac{1}{2} tr \left[ \Sigma^{-1}(Y-XA)'(Y-XA) \right] \right\} 
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} 
+\\ &\times \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1}(A-\hat{A})'X'X(A-\hat{A}) \right] \right\} 
+\\ &\times \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1}(Y-X \hat{A})'(Y-X \hat{A}) \right] \right\}
+\end{align}
+$$
+where 
+$$
+\begin{align}
+\hat{A} &= (X'X)^{-1}X'Y
+\\ \hat{\Sigma} &= \frac{1}{T} (Y-X \hat{A})'(Y-X \hat{A})
+\end{align}
+$$ 
+are from the maximum likelihood estimation.
+
+The **natural-conjugate prior distribution** where $A$ is matrix normal and $\Sigma$ follows inverse Wishart distribution has the same form as the joint posterior distribution for $A$ and $\Sigma$.
+$$
+\begin{gather}
+p(A,\Sigma) = p(A|\Sigma) \cdot p(\Sigma) \\
+\\ A|\Sigma \sim MN_{K \times N}(\underline{A},\Sigma,\underline{V}) \\
+\\ \Sigma \sim IW_N(\underline{S},\underline{\nu})
+\end{gather}
+$$
+where 
+$$
+\begin{align}
+\underline{A} &= [0_{N \times 1} \quad I_N \quad 0_{N \times (p-1)N}]' 
+\\ Var[vec(A)] &= \Sigma \otimes  \underline{V} 
+\\ \underline{V} &= \text{diag}([\kappa_2 \quad \kappa_1 (p^{-2} \otimes \imath_N)]) 
+\\ p &= [1,2,...p], \qquad \imath_N = [1,...,1]
+\end{align}
+$$
+This implies the following form for the kernel of the natural-conjugate prior distribution: 
+$$
+\begin{align}
+p(A,\Sigma) &= p(A|\Sigma) \cdot p(\Sigma) \\
+\\ &\propto \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} 
+\\ &\times \exp \left\{-\frac{1}{2}tr \left[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A}) \right] \right\} 
+\\ &\times \exp \left\{-\frac{1}{2}tr \left[\Sigma^{-1}\underline{S} \right] \right\}
+\end{align}
+$$
+The **posterior distribution** is given by the product of the likelihood and the priors. 
+$$
+\begin{align}
+p(A,\Sigma|Y,X) &\propto L(A,\Sigma|Y,X) \cdot p(A,\Sigma) \\
+\\ &\propto L(A,\Sigma|Y,X) \cdot p(A|\Sigma) \cdot p(\Sigma) \\
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \exp \left\{-\frac{1}{2} tr \left[ \Sigma^{-1}(A-\hat{A})'X'X(A-\hat{A}) \right] \right\} \cdot \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1}(Y-X \hat{A})'(Y-X \hat{A}) \right] \right\} 
+\\ &\times \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}\underline{S}] \right\} \\
+\\ &\propto \det{(\Sigma)}^{-\frac{T+N+K+\underline{\nu}+1}{2}} 
+\\ &\times \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1} \left[(A-\hat{A})'X'X(A-\hat{A})+(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})+(Y-X\hat{A})'(Y-X\hat{A})+\underline{S} \right] \right] \right\} \\
+\\ &\propto \det{(\Sigma)}^{-\frac{T+N+K+\underline{\nu}+1}{2}} 
+\\ &\times \exp \left\{ -\frac{1}{2} tr \left[\Sigma^{-1}\left[(A-\overline{A})'\overline{V}^{-1} (A-\overline{A})+\underline{S}+Y'Y+\underline{A}'\underline{V}^{-1}\underline{A}-\overline{A}'\overline{V}^{-1} \overline{A} \right] \right] \right\}
+\end{align}
+$$ 
+Combining the terms and completing the squares for the terms within the square brackets yields the following the joint posterior distributions for $A$ and $\Sigma$: 
+$$
+\begin{gather}
+p(A,\Sigma|Y,X) = p(A|Y,X,\Sigma) \cdot p(\Sigma|Y,X) = MNIW_{K \times N}(\overline{A}, \overline{V}, \overline{S}, \overline{\nu})
+\\
+\\ p(A|Y,X,\Sigma) = MN_{K \times N}(\overline{A}, \Sigma, \overline{V}) \\
+\\ p(\Sigma|Y,X) = IW_N(\overline{S},\overline{\nu}) \\
+\end{gather}
+$$ 
+where the parameter of the joint posterior distribution are the following: 
+$$
+\begin{align}
+\overline{V} &= (X'X + \underline{V}^{-1})^{-1} 
+\\ \overline{A} &= \overline{V}(X'Y + \underline{V}^{-1}\underline{A}) 
+\\ \overline{\nu} &= T + \underline{\nu} 
+\\ \overline{S} &= \underline{S} + Y'Y + \underline{A}'\underline{V}^{-1}\underline{A} - \overline{A}'\overline{V}^{-1}\overline{A}
+\end{align}
+$$
+
+### Gaussian random walk process
+
+To check whether the algorithm is replicable, bi-variate Gaussian random walk process containing 1,000 observations was simulated.
+```{r Random Walk, fig.width=5, fig.height=4}
+set.seed(2024)
+
+RW1 <- arima.sim(model= list(order = c(0, 1, 0)), n=1000, mean=0, sd=1)
+RW2 <- arima.sim(model= list(order = c(0, 1, 0)), n=1000, mean=0, sd=1)
+RW <- cbind(RW1, RW2)
+
+plot(RW1, type='l', main="Bi-variate Gaussian Random Walk Process", col="red", xlab="", ylab="", ylim=c(min(RW), max(RW)))
+lines(RW2, col='blue')
+```
+
+```{r define baseline model}
+# Create Y and X matries
+#########################################################
+Y            = RW[2:nrow(RW),]
+X            = matrix(1,nrow(Y),1)
+X            = cbind(X,RW[2: nrow(RW)-1,])
+
+N            = 2            # number of variables
+p            = 1            # number of lags
+K            = 1+p*N
+S            = 1000         # sample size
+
+sign.restrictions = c(1,1)
+```
+
+```{r baseline model MLE}
+# Calculate the MLE
+############################################################
+A.hat        = solve(t(X)%*%X)%*%t(X)%*%Y                
+Sigma.hat    = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)   
+```
+
+```{r, baseline model posterior distribution, echo = TRUE}
+#| code-fold: true
+#| code-summary: "Show code"
+
+# Specify prior distribution
+############################################################
+kappa.1     <- 0.02^2
+kappa.2     <- 100
+
+A.prior     <- matrix(0,nrow(A.hat),ncol(A.hat))
+A.prior[2:(N+1),] <- diag(N)
+V.prior     <- diag(c(kappa.2,kappa.1*((1:p)^(-2))%x%rep(1,N)))
+S.prior     <- diag(diag(Sigma.hat))
+nu.prior    <- N+1
+  
+# Matrix normal-inverse Wishart posterior parameters
+############################################################
+V.bar.inv <- t(X)%*%X + diag(1/diag(V.prior))
+V.bar     <- solve(V.bar.inv)
+A.bar     <- V.bar%*%(t(X)%*%Y + diag(1/diag(V.prior))%*%A.prior)
+nu.bar    <- nrow(Y) + nu.prior
+S.bar     <- S.prior + t(Y)%*%Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
+S.bar.inv <- solve(S.bar)
+
+# Draw Posterior distribution
+############################################################
+## Draw from the Reduced Form
+# Draw Sigma from the inverse Wishart distribution
+Sigma.posterior   <- rWishart(S, df=nu.bar, Sigma=S.bar.inv)
+Sigma.posterior   <- apply(Sigma.posterior,3,solve)            
+Sigma.posterior   <- array(Sigma.posterior,c(N,N,S))
+
+# Draw A from matrix-variate normal distribution
+A.posterior       <- array(rnorm(prod(c(dim(A.bar),S))),c(dim(A.bar),S)) 
+
+## Draw from the Structural Form
+B0.posterior       <- array(NA,c(N,N,S))
+B1.posterior       <- array(NA,c(N,K,S))
+L                  <- t(chol(V.bar)) 
+
+for (s in 1:S){
+  # Draw B0
+    cholSigma.s        <- chol(Sigma.posterior[,,s])
+    B0.posterior[,,s]  <- solve(t(cholSigma.s)) 
+    A.posterior[,,s]   <- A.bar + L%*%A.posterior[,,s]%*%cholSigma.s
+  # Draw Bplus
+    B1.posterior[,,s]  <- B0.posterior[,,s]%*%t(A.posterior[,,s])
+}
+
+# Identification via sign restrictions 
+############################################################
+# Generate corresponding R matrix
+R1 <- diag(sign.restrictions)
+
+# Storage matrices for Q identified estimates
+i.vec <- c()
+Q.draws      <- array(NA,c(N,N,S))
+B0.draws     <- array(NA,c(N,N,S))
+B1.draws     <- array(NA,c(N,K,S))
+#A.draws      <- array(NA,c(K,N,S))
+#Sigma.draws  <- array(NA,c(N,N,S))
+
+for (s in 1:S){
+    #A             <- A.posterior[,,s]
+    #Sigma         <- Sigma.posterior[,,s]
+    B0.tilde      <- B0.posterior[,,s]
+    B1.tilde      <- B1.posterior[,,s]
+
+    sign.restrictions.do.not.hold = TRUE
+    i=1
+    while (sign.restrictions.do.not.hold){
+      X           <- matrix(rnorm(N*N),N,N)         
+      QR          <- qr(X, tol = 1e-10)
+      Q           <- qr.Q(QR,complete=TRUE)
+      R           <- qr.R(QR,complete=TRUE)
+      Q           <- t(Q %*% diag(sign(diag(R))))
+      B0          <- Q%*%B0.tilde                    
+      B1          <- Q%*%B1.tilde                   
+      B0.inv      <- solve(B0)      
+      check       <- all(c(B0[1,1], B0[2,2]) > 0)
+
+    if (check){sign.restrictions.do.not.hold=FALSE}
+    i=i+1 
+  }
+  i.vec <- c(i.vec,i) 
+  Q.draws[,,s]       <- Q
+  B0.draws[,,s]      <- B0
+  B0.mean            <- apply(B0.draws,1:2,mean)
+  B1.draws[,,s]      <- B1
+  B1.mean            <- apply(B1.draws,1:2,mean)
+  #A.draws[,,s]      <- A
+  #A.mean            <- apply(A.draws,1:2,mean)
+  #Sigma.draws[,,s]  <- Sigma
+  #Sigma.mean        <- apply(Sigma.draws,1:2,mean)
+}
+```
+
+
+```{r Random Walk Matrix B0}
+#| label: table - B0
+#| tbl-cap: Mean of the Matrix B[0]
+B0.RW <- as.data.frame(B0.mean)
+#colnames(B0.RW) <- c("C1", "C2")
+#rownames(B0.RW) <- c("R1", "R2")
+knitr::kable(B0.RW, index = FALSE)
+```
+
+```{r Random Walk Matrix B+}
+#| label: table - B+
+#| tbl-cap: Mean of the Matrix B[+]
+B1.RW <- as.data.frame(B1.mean)
+#colnames(B1.RW) <- c("C1", "C2", "C3")
+#rownames(B1.RW) <- c("R1", "R2")
+knitr::kable(B1.RW, index = FALSE)
+```
+
+## Extended Model: Student's *t*-distributed errors
+
+### Estimation Procedure
+
+$$
+\begin{align}
+E_T &\sim t_N(0, \Sigma, \nu) 
+\end{align}
+$$
+Then, the reduced form can be represented in a matrix form as follows:
+$$
+\begin{gather}
+Y = XA + E \\
+\\ E|X, \lambda \sim MN_{T \times N}(0_{T \times N},\Sigma,\lambda I_T)
+\end{gather} 
+$$ 
+where lambda is inverse gamma 2 distributed.
+
+$$
+\lambda \sim IG2(s_{\lambda}, \nu_{\lambda})
+$$
+
+The kernel of the **likelihood function** follows as:
+$$
+\begin{align}
+L(A,\Sigma,\lambda|Y,X) &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\lambda I_T)^{-\frac{N}{2}} \cdot \exp \left\{-\frac{1}{2} \text{tr} \left[\Sigma^{-1}(Y-XA)'(\lambda I_T)^{-1}(Y-XA) \right] \right\}
+\end{align}
+$$
+The **conditional posterior distribution of** $\lambda$:
+$$
+\begin{align}
+p(\lambda|Y,X,A,\Sigma) &\propto L(A,\Sigma,\lambda|Y,X) \cdot p(\lambda)
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\lambda I_T)^{-\frac{N}{2}} \cdot
+\exp \left\{-\frac{1}{2} tr[\Sigma^{-1} (Y-XA)' (\lambda I_T)^{-1} (Y-XA)] \right\}
+\\ &\times \lambda^{-\frac{\underline{\nu_{\lambda}}+2}{2}} \cdot 
+\exp \left\{-\frac{1}{2}\frac{\underline{s_{\lambda}}}{\lambda} \right\} \\
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(I_T)^{-\frac{N}{2}} \cdot 
+\exp \left\{-\frac{1}{2}\frac{1}{\lambda} tr[\Sigma^{-1}(Y-XA)'(Y-XA)] \right\} \\
+&\times \lambda^{-\frac{TN}{2}} \cdot \lambda^{-\frac{\underline{\nu_{\lambda}}+2}{2}} \cdot 
+\exp \left\{-\frac{1}{2}\frac{\underline{s_{\lambda}}}{\lambda} \right\} \\
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(I_T)^{-\frac{N}{2}} \cdot \lambda^{-\frac{TN+\underline{\nu_{\lambda}}+2}{2}} \cdot \exp \left\{-\frac{1}{2}\frac{1}{\lambda} [tr(\Sigma^{-1}(Y-XA)'(Y-XA)) + \underline{s_{\lambda}}] \right\}
+\end{align}
+$$
+This follows
+$$
+\begin{align}
+\lambda|Y,X, A,\Sigma &\sim IG2(\overline{s_{\lambda}},\overline{\nu_{\lambda}})
+\end{align}
+$$
+where
+$$
+\begin{align}
+\overline{s_{\lambda}} &= tr[\Sigma^{-1}(Y-XA)'(Y-XA)] + \underline{s_{\lambda}} \\
+\overline{\nu_{\lambda}} &= \underline{\nu_{\lambda}} + TN 
+\end{align}
+$$
+The **conditional posterior distribution of** $A$ **and** $\Sigma$:
+
+$$
+\begin{align}
+p(A,\Sigma|Y,X,\lambda) &\propto L(A,\Sigma|Y,X,\lambda) \cdot p(A,\Sigma) \\
+\\ &\propto L(A,\Sigma|Y,X,\lambda) \cdot p(A|\Sigma,\lambda) \cdot p(\Sigma) \\
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\lambda I_T)^{-\frac{N}{2}} \cdot \exp \left\{-\frac{1}{2} tr[\Sigma^{-1} (Y-XA)' (\lambda I_T)^{-1} (Y-XA) ] \right\}
+\\ &\times 
+\det(\Sigma)^{-\frac{N+k+\underline{\nu}+1}{2}} \cdot \exp \left\{-\frac{1}{2}tr[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} \cdot \exp \left\{ -\frac{1}{2}tr[\Sigma^{-1}\underline{S}] \right\} \\
+\\ &\propto \det(\Sigma)^{-\frac{T+N+K+\underline{\nu}+1}{2}} \cdot \det(\lambda I_T)^{-\frac{N}{2}} 
+\\ &\times \exp \left\{-\frac{1}{2} tr[\Sigma^{-1}(Y'(\lambda I_T)^{-1}Y - 2A'X'(\lambda I_T)^{-1}Y + A'X'(\lambda I_T)^{-1}XA + A'\underline{V}^{-1}A -2A'\underline{V}^{-1}\underline{A} + \underline{A}'\underline{V}^{-1}\underline{A} + \underline{S})] \right\}
+\end{align}
+$$
+This follows:
+$$
+\begin{gather}
+p(A,\Sigma|Y,X,\lambda) = p(A|Y,X,\Sigma, \lambda) \cdot p(\Sigma|Y,X,\lambda) = MNIW_{K \times N}(\overline{A}, \overline{V}, \overline{S}, \overline{\nu}) \\
+\\ p(A|Y,X,\Sigma,\lambda) = MN_{K \times N}(\overline{A}, \Sigma, \overline{V}) \\
+\\ p(\Sigma|Y,X,\lambda) = IW_N(\overline{S},\overline{\nu}) \\
+\end{gather}
+$$
+where
+$$
+\begin{align}
+\overline{V} &= [X'(\lambda I_T)^{-1}X + \underline{V}^{-1}]^{-1} \\
+\overline{A} &= \overline{V}[X'(\lambda I_T)^{-1}Y + \underline{V}^{-1}\underline{A}] \\
+\overline{S} &= Y'(\lambda I_T)^{-1}Y + \underline{A}'\underline{V}^{-1}\underline{A} - \overline{A}'\overline{V}^{-1}\overline{A} + \underline{S} \\
+\overline{\nu} &= \underline{\nu} + T
+\end{align}
+$$
+
+### Gaussian random walk process
+
+#### Gibbs Sampler
+
+Initialise $\lambda$ at $\lambda^{(0)}$
+From S = 1, 
+
+1. Draw $\Sigma^{(s)} \sim P(\Sigma|Y,X,\lambda^{(s-1)})$ from the $IW_N(\overline{S},\overline{\nu})$ distribution
+2. Draw $A^{(s)} \sim P(A|Y,X,\Sigma^{(s)},\lambda^{(s-1)})$ from the $MN_{K \times N}(\overline{A},\Sigma^{(s)}, \overline{V})$ distribution
+3. Draw $\lambda^{(s)} \sim P(\lambda|Y,X,A^{(s)},\Sigma^{(s)})$ from $IG2(\overline{s_{\lambda}},\overline{\nu_{\lambda}})$ distribution
+
+To check whether the algorithm is replicable, bi-variate Gaussian random walk process containing 1,000 observations was simulated.
+
+```{r}
+# Extension
+set.seed(2024)
+RW11 <- arima.sim(model= list(order = c(0, 1, 0)), n=1000, mean=0, sd=1)
+RW22 <- arima.sim(model= list(order = c(0, 1, 0)), n=1000, mean=0, sd=1)
+
+RW.1 <- cbind(RW11,RW22)
+Y <- RW.1[2:nrow(RW.1),]
+# Create Y and X matries
+#########################################################
+Y            = RW.1[2:nrow(RW.1),]
+X            = matrix(1,nrow(Y),1)
+X            = cbind(X,RW.1[2: nrow(RW.1)-1,])
+
+N            = 2            # number of variables
+p            = 1            # number of lags
+K            = 1+p*N
+S            = 1000         # sample size
+
+sign.restrictions = c(1,1)
+
+# Calculate the MLE
+############################################################
+A.hat        = solve(t(X)%*%X)%*%t(X)%*%Y                
+Sigma.hat    = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)   
+
+# Specify prior distribution
+############################################################
+kappa.1     <- 0.02^2
+kappa.2     <- 100
+
+A.prior     <- matrix(0,nrow(A.hat),ncol(A.hat))
+A.prior[2:(N+1),] <- diag(N)
+V.prior     <- diag(c(kappa.2,kappa.1*((1:p)^(-2))%x%rep(1,N)))
+S.prior     <- diag(diag(Sigma.hat))
+nu.prior    <- N+1
+lambda      <- 5
+S.prior.lambda     <- 5
+nu.prior.lambda    <- 5
+lambda <- S.prior.lambda/rchisq(1, nu.prior.lambda)
+
+#library(MCMCpack)
+#lambda1 <- rinvgamma(1, S.prior.lambda, nu.prior.lambda)
+
+#A.posterior <- array(rnorm(prod(c(dim(A.bar),S))),c(dim(A.bar),S)) 
+
+Sigma.posterior.store    <- array(NA, c(N,N,S))
+A.posterior.store        <- array(NA, c((1+p*N),N,S))
+lambda.posterior.store   <- rep(NA,S)
+B0.posterior.store       <- array(NA,c(N,N,S))
+B1.posterior.store       <- array(NA,c(N,K,S))
+
+for (s in 1:S){
+  
+
+  # Matrix normal-inverse Wishart posterior parameters
+  ############################################################
+  # CORRECT
+  V.bar.inv <- t(X)%*%X/lambda + diag(1/diag(V.prior))
+  V.bar     <- solve(V.bar.inv)
+  A.bar     <- V.bar%*%(t(X)%*%Y/lambda + diag(1/diag(V.prior))%*%A.prior)
+  nu.bar    <- nrow(Y) + nu.prior
+  S.bar     <- S.prior + t(Y)%*%Y/lambda + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
+  S.bar.inv <- solve(S.bar)
+  
+  # Draw Posterior distribution
+  ############################################################
+  ## Draw from the Reduced Form
+  # Draw Sigma from the inverse Wishart distribution
+  Sigma.posterior   <- rWishart(1, df=nu.bar, Sigma=S.bar.inv)[,,1]
+  Sigma.posterior.store[,,s]   <- solve(Sigma.posterior)
+  
+  # Draw A from matrix-variate normal distribution
+  # CORRECT
+  A.posterior.store[,,s] = matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.bar), sigma=Sigma.posterior.store[,,s]%x%V.bar), ncol=N)
+  
+  S.posterior.lambda = sum(diag(Sigma.posterior%*%t(Y-X%*%A.posterior.store[,,s])%*%(Y-X%*%A.posterior.store[,,s]))) + S.prior.lambda
+  nu.posterior.lambda = nrow(Y)*2 + nu.prior.lambda
+  
+  lambda = S.posterior.lambda / rchisq(1, nu.posterior.lambda)
+  lambda.posterior.store[s] = lambda
+  
+  ## Draw from the Structural Form
+  #L                  <- t(chol(V.bar)) 
+  # Draw B0
+  cholSigma.s        <- chol(Sigma.posterior.store[,,s])
+  B0.posterior.store[,,s]  <- solve(t(cholSigma.s)) 
+  #A.posterior.store [,,s]   <- A.bar + L%*%A.posterior.store [,,s]%*%cholSigma.s
+  # Draw Bplus
+  B1.posterior.store[,,s]  <- B0.posterior.store[,,s]%*%t(A.posterior.store [,,s])
+}
+
+# Identification via sign restrictions 
+############################################################
+# Generate corresponding R matrix
+R1 <- diag(sign.restrictions)
+
+# Storage matrices for Q identified estimates
+i.vec <- c()
+Q.store      <- array(NA,c(N,N,(S)))
+B0.store    <- array(NA,c(N,N,(S)))
+B1.store     <- array(NA,c(N,K,(S)))
+#A.store     <- array(NA,c(K,N,S))
+#Sigma.store  <- array(NA,c(N,N,S))
+#lambda.store <- array(NA,s)
+
+for (s in 1:S){
+  #A             <- A.posterior.store[,,s]
+  #Sigma         <- Sigma.posterior.store[,,s]
+  #lambda.s <- lambda.store[s]
+  B0.tilde      <- B0.posterior.store[,,s]
+  B1.tilde      <- B1.posterior.store[,,s]
+
+  sign.restrictions.do.not.hold = TRUE
+  i=1
+  while (sign.restrictions.do.not.hold){
+    X           <- matrix(rnorm(N*N),N,N)         
+    QR          <- qr(X, tol = 1e-10)
+    Q           <- qr.Q(QR,complete=TRUE)
+    R           <- qr.R(QR,complete=TRUE)
+    Q           <- t(Q %*% diag(sign(diag(R))))
+    B0          <- Q%*%B0.tilde                    
+    B1          <- Q%*%B1.tilde                   
+    B0.inv      <- solve(B0)      
+    check       <- all(c(B0[1,1], B0[2,2]) > 0)
+    
+    if (check){sign.restrictions.do.not.hold=FALSE}
+    i=i+1 
+  }
+  i.vec <- c(i.vec,i) 
+  
+  Q.store[,,s] <- Q
+  B0.store[,,s] <- B0
+  B0.mean <- apply(B0.store,1:2,mean)
+  B1.store[,,s] <- B1
+  B1.mean <- apply(B1.store,1:2,mean)
+  #A.store[,,s]       <- A
+  #A.mean             <- apply(A,1:2,mean)
+  #Sigma.store[,,s]   <- Sigma
+  #Sigma.mean         <- apply(Sigma,1:2,mean)
+}
+
+
+B0.RW.t <- as.data.frame(B0.mean)
+knitr::kable(B0.RW.t, index = FALSE)
+
+B1.RW.t <- as.data.frame(B1.mean)
+knitr::kable(B1.RW.t, index = FALSE)
+
+A.RW.t <- as.data.frame(apply(A.posterior.store, 1:2, mean))
+knitr::kable(A.RW.t, index = FALSE)
+
+Sigma.RW.t <- as.data.frame(apply(Sigma.posterior.store, 1:2, mean))
+knitr::kable(Sigma.RW.t, index = FALSE)
+```
 
 
 
 
-
-
-
-## Model Extension: Student's *t*-distributed errors
 
 
 
 
 
 # Empirical Results
-## Baseline Model Estimation
 
+## The Baseline Model Estimation
+
+## The Extended Model Estimation: Student's *t*-distributed error terms
 
 # Conclusion
 
-
-
 ## References {.unnumbered}
-
