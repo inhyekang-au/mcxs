@@ -570,19 +570,6 @@ plot(RW1, type='l', main="Bi-variate Gaussian Random Walk Process", col="red", x
 lines(RW2, col='blue')
 ```
 
-```{r define baseline model}
-# Create Y and X matries
-#########################################################
-
-```
-
-```{r baseline model MLE}
-# Calculate the MLE
-############################################################
-# A.hat        = solve(t(X)%*%X)%*%t(X)%*%Y                
-# Sigma.hat    = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)   
-```
-
 ```{r, baseline model posterior distribution, echo = TRUE}
 #| code-fold: true
 #| code-summary: "Show code"
@@ -702,8 +689,6 @@ B1.mean = baseline_model[[2]]
 #| label: table - B0
 #| tbl-cap: Mean of the Matrix B[0]
 B0.RW <- as.data.frame(B0.mean)
-#colnames(B0.RW) <- c("C1", "C2")
-#rownames(B0.RW) <- c("R1", "R2")
 knitr::kable(B0.RW, index = FALSE)
 ```
 
@@ -711,8 +696,6 @@ knitr::kable(B0.RW, index = FALSE)
 #| label: table - B+
 #| tbl-cap: Mean of the Matrix B[+]
 B1.RW <- as.data.frame(B1.mean)
-#colnames(B1.RW) <- c("C1", "C2", "C3")
-#rownames(B1.RW) <- c("R1", "R2")
 knitr::kable(B1.RW, index = FALSE)
 ```
 
@@ -817,11 +800,6 @@ From S = 1,
 To check whether the algorithm is replicable, bi-variate Gaussian random walk process containing 1,000 observations was simulated.
 
 ```{r}
-
-#library(MCMCpack)
-#lambda1 <- rinvgamma(1, S.prior.lambda, nu.prior.lambda)
-
-#A.posterior <- array(rnorm(prod(c(dim(A.bar),S))),c(dim(A.bar),S)) 
 extended_model_fit <- function(kappa.1, kappa.2, data, lambda, S.prior.lambda, nu.prior.lambda, p, S, sign.restrictions){
   Y            = data[2:nrow(data),]
   N = ncol(Y)
@@ -872,10 +850,8 @@ extended_model_fit <- function(kappa.1, kappa.2, data, lambda, S.prior.lambda, n
     
     ## Draw from the Structural Form
     #L                  <- t(chol(V.bar)) 
-    # Draw B0
     cholSigma.s        <- chol(Sigma.posterior.store[,,s])
     B0.posterior.store[,,s]  <- solve(t(cholSigma.s)) 
-    #A.posterior.store [,,s]   <- A.bar + L%*%A.posterior.store [,,s]%*%cholSigma.s
     # Draw Bplus
     B1.posterior.store[,,s]  <- B0.posterior.store[,,s]%*%t(A.posterior.store [,,s])
   }
@@ -890,14 +866,9 @@ extended_model_fit <- function(kappa.1, kappa.2, data, lambda, S.prior.lambda, n
   Q.store      <- array(NA,c(N,N,(S)))
   B0.store    <- array(NA,c(N,N,(S)))
   B1.store     <- array(NA,c(N,K,(S)))
-  #A.store     <- array(NA,c(K,N,S))
-  #Sigma.store  <- array(NA,c(N,N,S))
-  #lambda.store <- array(NA,s)
+
   
   for (s in 1:S){
-    #A             <- A.posterior.store[,,s]
-    #Sigma         <- Sigma.posterior.store[,,s]
-    #lambda.s <- lambda.store[s]
     B0.tilde      <- B0.posterior.store[,,s]
     B1.tilde      <- B1.posterior.store[,,s]
   
@@ -924,10 +895,6 @@ extended_model_fit <- function(kappa.1, kappa.2, data, lambda, S.prior.lambda, n
     B0.mean <- apply(B0.store,1:2,mean)
     B1.store[,,s] <- B1
     B1.mean <- apply(B1.store,1:2,mean)
-    #A.store[,,s]       <- A
-    #A.mean             <- apply(A,1:2,mean)
-    #Sigma.store[,,s]   <- Sigma
-    #Sigma.mean         <- apply(Sigma,1:2,mean)
   }
 return(list(B0.mean, B1.mean, A.posterior.store, Sigma.posterior.store))
 }
@@ -955,21 +922,35 @@ B0.mean = extended_model_result[[1]]
 B1.mean = extended_model_result[[2]]
 A.posterior.store = extended_model_result[[3]]
 Sigma.posterior.store = extended_model_result[[4]]
+```
 
+```{r random walk extension Matrix B0}
+#| label: table - RW Extension B0
+#| tbl-cap: Mean of the Matrix B[0]
 B0.RW.t <- as.data.frame(B0.mean)
 knitr::kable(B0.RW.t, index = FALSE)
+```
 
+```{r random walk extension Matrix B+}
+#| label: table - RW Extension B+
+#| tbl-cap: Mean of the Matrix B[+]
 B1.RW.t <- as.data.frame(B1.mean)
 knitr::kable(B1.RW.t, index = FALSE)
+```
 
+```{r random walk extension A posterior}
+#| label: table - RW Extension A Posterior
+#| tbl-cap: Mean of the A posterior
 A.RW.t <- as.data.frame(apply(A.posterior.store, 1:2, mean))
 knitr::kable(A.RW.t, index = FALSE)
+```
 
+```{r random walk extension Sigma posterior}
+#| label: table - RW Extension Sigma Posterior
+#| tbl-cap: Mean of the Sigma posterior
 Sigma.RW.t <- as.data.frame(apply(Sigma.posterior.store, 1:2, mean))
 knitr::kable(Sigma.RW.t, index = FALSE)
 ```
-
-
 
 
 
