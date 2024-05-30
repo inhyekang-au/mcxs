@@ -559,6 +559,120 @@ $$
 
 To check the validity of the algorithms, two independent bi-variate Gaussian random walk processes with 1,000 observations were generated to simulate unit-root non-stationary macroeconomic variables.
 
+
+```{r, baseline model posterior distribution, echo = TRUE}
+#| code-fold: true
+#| code-summary: "Show code"
+
+baseline_model_fit <- function(data, kappa.1, kappa.2, p, S, sign.restrictions){
+  Y            = data[2:nrow(data),]
+  N = ncol(Y)           # number of variables
+  K = 1+p*N
+ 
+  X            = matrix(1,nrow(Y),1)
+  X            = cbind(X,RW[2: nrow(RW)-1,])
+  A.hat        = solve(t(X)%*%X)%*%t(X)%*%Y                
+  Sigma.hat    = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)   
+  A.prior     <- matrix(0,nrow(A.hat),ncol(A.hat))
+  A.prior[2:(N+1),] <- diag(N)
+  V.prior     <- diag(c(kappa.2,kappa.1*((1:p)^(-2))%x%rep(1,N)))
+  S.prior     <- diag(diag(Sigma.hat))
+  nu.prior    <- N+1
+    
+  # Matrix normal-inverse Wishart posterior parameters
+  ############################################################
+  V.bar.inv <- t(X)%*%X + diag(1/diag(V.prior))
+  V.bar     <- solve(V.bar.inv)
+  A.bar     <- V.bar%*%(t(X)%*%Y + diag(1/diag(V.prior))%*%A.prior)
+  nu.bar    <- nrow(Y) + nu.prior
+  S.bar     <- S.prior + t(Y)%*%Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
+  S.bar.inv <- solve(S.bar)
+  
+  # Draw Posterior distribution
+  ############################################################
+  ## Draw from the Reduced Form
+  # Draw Sigma from the inverse Wishart distribution
+  Sigma.posterior   <- rWishart(S, df=nu.bar, Sigma=S.bar.inv)
+  Sigma.posterior   <- apply(Sigma.posterior,3,solve)            
+  Sigma.posterior   <- array(Sigma.posterior,c(N,N,S))
+  
+  # Draw A from matrix-variate normal distribution
+  A.posterior       <- array(rnorm(prod(c(dim(A.bar),S))),c(dim(A.bar),S)) 
+  
+  ## Draw from the Structural Form
+  B0.posterior       <- array(NA,c(N,N,S))
+  B1.posterior       <- array(NA,c(N,K,S))
+  L                  <- t(chol(V.bar)) 
+  
+  for (s in 1:S){
+    # Draw B0
+      cholSigma.s        <- chol(Sigma.posterior[,,s])
+      B0.posterior[,,s]  <- solve(t(cholSigma.s)) 
+      A.posterior[,,s]   <- A.bar + L%*%A.posterior[,,s]%*%cholSigma.s
+    # Draw Bplus
+      B1.posterior[,,s]  <- B0.posterior[,,s]%*%t(A.posterior[,,s])
+  }
+  
+  # Identification via sign restrictions 
+  ############################################################
+  # Generate corresponding R matrix
+  R1 <- diag(sign.restrictions)
+  
+  # Storage matrices for Q identified estimates
+  i.vec <- c()
+  Q.draws      <- array(NA,c(N,N,S))
+  B0.draws     <- array(NA,c(N,N,S))
+  B1.draws     <- array(NA,c(N,K,S))
+  #A.draws      <- array(NA,c(K,N,S))
+  #Sigma.draws  <- array(NA,c(N,N,S))
+  
+  for (s in 1:S){
+      #A             <- A.posterior[,,s]
+      #Sigma         <- Sigma.posterior[,,s]
+      B0.tilde      <- B0.posterior[,,s]
+      B1.tilde      <- B1.posterior[,,s]
+  
+      sign.restrictions.do.not.hold = TRUE
+      i=1
+      while (sign.restrictions.do.not.hold){
+        X           <- matrix(rnorm(N*N),N,N)         
+        QR          <- qr(X, tol = 1e-10)
+        Q           <- qr.Q(QR,complete=TRUE)
+        R           <- qr.R(QR,complete=TRUE)
+        Q           <- t(Q %*% diag(sign(diag(R))))
+        B0          <- Q%*%B0.tilde                    
+        B1          <- Q%*%B1.tilde                   
+        B0.inv      <- solve(B0)      
+        check       <- all(c(B0[1,1], B0[2,2]) > 0)
+  
+      if (check){sign.restrictions.do.not.hold=FALSE}
+      i=i+1 
+    }
+    i.vec <- c(i.vec,i) 
+    Q.draws[,,s]       <- Q
+    B0.draws[,,s]      <- B0
+    B0.mean            <- apply(B0.draws,1:2,mean)
+    B1.draws[,,s]      <- B1
+    B1.mean            <- apply(B1.draws,1:2,mean)
+    #A.draws[,,s]      <- A
+    #A.mean            <- apply(A.draws,1:2,mean)
+    #Sigma.draws[,,s]  <- Sigma
+    #Sigma.mean        <- apply(Sigma.draws,1:2,mean)
+  }
+    return(list(B0.mean, B1.mean))
+
+}
+
+kappa.1     <- 0.02^2
+kappa.2     <- 100
+p            = 1  #number of lags
+S            = 1000         # sample size
+
+sign.restrictions = c(1,1)
+baseline_model =  baseline_model_fit(data = RW, kappa.1=kappa.1, kappa.2 = kappa.2, p = p, S = S, sign.restrictions = sign.restrictions)
+B0.mean = baseline_model[[1]]
+B1.mean = baseline_model[[2]]
+=======
 ```{r random walks}
 set.seed(2024)
 RW1 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
@@ -711,12 +825,21 @@ The results show that
 ```{r random walk baseline model Matrix B0}
 #| label: table - RW Baseline B0
 #| tbl-cap: Mean of the Matrix B[0]
+
+B0.RW <- as.data.frame(B0.mean)
+knitr::kable(B0.RW, index = FALSE)
+=======
 knitr::kable(round(apply(RW.baseline$B0.mean, 1:2, mean), 4))
+
 ```
 
 ```{r random walk baseline model Matrix B+}
 #| label: table - RW Baseline B+
 #| tbl-cap: Mean of the Matrix B[+]
+
+B1.RW <- as.data.frame(B1.mean)
+knitr::kable(B1.RW, index = FALSE)
+=======
 knitr::kable(round(apply(RW.baseline$B1.mean, 1:2, mean), 4))
 ```
 
@@ -730,6 +853,7 @@ knitr::kable(round(apply(RW.baseline$A.posterior, 1:2, mean), 4))
 #| label: table - RW Baseline Sigma posterior
 #| tbl-cap: Mean of the Sigma posterior
 knitr::kable(round(apply(RW.baseline$Sigma.posterior, 1:2, mean), 4))
+
 ```
 
 ## 4.2 Bayesian SVAR Model with *t*-distributed Innovations
@@ -848,13 +972,166 @@ From S = 1,
 2. Draw $A^{(s)} \sim P(A|Y,X,\Sigma^{(s)},\lambda^{(s-1)})$ from the $MN_{K \times N}(\overline{A},\Sigma^{(s)}, \overline{V})$ distribution
 3. Draw $\lambda^{(s)} \sim P(\lambda|Y,X,A^{(s)},\Sigma^{(s)})$ from $IG2(\overline{s_{\lambda}},\overline{\nu_{\lambda}})$ distribution
 
+To check whether the algorithm is replicable, bi-variate Gaussian random walk process containing 1,000 observations was simulated.
+
+```{r}
+extended_model_fit <- function(kappa.1, kappa.2, data, lambda, S.prior.lambda, nu.prior.lambda, p, S, sign.restrictions){
+  Y            = data[2:nrow(data),]
+  N = ncol(Y)
+  K            = 1+p*N
+  X            = matrix(1,nrow(Y),1)
+  X   = cbind(X,RW.1[2: nrow(RW.1)-1,])
+  A.hat        = solve(t(X)%*%X)%*%t(X)%*%Y                
+  Sigma.hat    = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)   
+  nu.prior    <- N+1
+  A.prior     <- matrix(0,nrow(A.hat),ncol(A.hat))
+  A.prior[2:(N+1),] <- diag(N)
+  V.prior     <- diag(c(kappa.2,kappa.1*((1:p)^(-2))%x%rep(1,N)))
+  S.prior     <- diag(diag(Sigma.hat))
+  lambda <- S.prior.lambda/rchisq(1, nu.prior.lambda)
+  Sigma.posterior.store    <- array(NA, c(N,N,S))
+  A.posterior.store        <- array(NA, c((1+p*N),N,S))
+  lambda.posterior.store   <- rep(NA,S)
+  B0.posterior.store       <- array(NA,c(N,N,S))
+  B1.posterior.store       <- array(NA,c(N,K,S))
+  
+  for (s in 1:S){
+    # Matrix normal-inverse Wishart posterior parameters
+    ############################################################
+    # CORRECT
+    V.bar.inv <- t(X)%*%X/lambda + diag(1/diag(V.prior))
+    V.bar     <- solve(V.bar.inv)
+    A.bar     <- V.bar%*%(t(X)%*%Y/lambda + diag(1/diag(V.prior))%*%A.prior)
+    nu.bar    <- nrow(Y) + nu.prior
+    S.bar     <- S.prior + t(Y)%*%Y/lambda + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
+    S.bar.inv <- solve(S.bar)
+    
+    # Draw Posterior distribution
+    ############################################################
+    ## Draw from the Reduced Form
+    # Draw Sigma from the inverse Wishart distribution
+    Sigma.posterior   <- rWishart(1, df=nu.bar, Sigma=S.bar.inv)[,,1]
+    Sigma.posterior.store[,,s]   <- solve(Sigma.posterior)
+    
+    # Draw A from matrix-variate normal distribution
+    # CORRECT
+    A.posterior.store[,,s] = matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.bar), sigma=Sigma.posterior.store[,,s]%x%V.bar), ncol=N)
+    
+    S.posterior.lambda = sum(diag(Sigma.posterior%*%t(Y-X%*%A.posterior.store[,,s])%*%(Y-X%*%A.posterior.store[,,s]))) + S.prior.lambda
+    nu.posterior.lambda = nrow(Y)*2 + nu.prior.lambda
+    
+    lambda = S.posterior.lambda / rchisq(1, nu.posterior.lambda)
+    lambda.posterior.store[s] = lambda
+    
+    ## Draw from the Structural Form
+    #L                  <- t(chol(V.bar)) 
+    cholSigma.s        <- chol(Sigma.posterior.store[,,s])
+    B0.posterior.store[,,s]  <- solve(t(cholSigma.s)) 
+    # Draw Bplus
+    B1.posterior.store[,,s]  <- B0.posterior.store[,,s]%*%t(A.posterior.store [,,s])
+  }
+  
+  # Identification via sign restrictions 
+  ############################################################
+  # Generate corresponding R matrix
+  R1 <- diag(sign.restrictions)
+  
+  # Storage matrices for Q identified estimates
+  i.vec <- c()
+  Q.store      <- array(NA,c(N,N,(S)))
+  B0.store    <- array(NA,c(N,N,(S)))
+  B1.store     <- array(NA,c(N,K,(S)))
+
+  
+  for (s in 1:S){
+    B0.tilde      <- B0.posterior.store[,,s]
+    B1.tilde      <- B1.posterior.store[,,s]
+  
+    sign.restrictions.do.not.hold = TRUE
+    i=1
+    while (sign.restrictions.do.not.hold){
+      X           <- matrix(rnorm(N*N),N,N)         
+      QR          <- qr(X, tol = 1e-10)
+      Q           <- qr.Q(QR,complete=TRUE)
+      R           <- qr.R(QR,complete=TRUE)
+      Q           <- t(Q %*% diag(sign(diag(R))))
+      B0          <- Q%*%B0.tilde                    
+      B1          <- Q%*%B1.tilde                   
+      B0.inv      <- solve(B0)      
+      check       <- all(c(B0[1,1], B0[2,2]) > 0)
+      
+      if (check){sign.restrictions.do.not.hold=FALSE}
+      i=i+1 
+    }
+    i.vec <- c(i.vec,i) 
+    
+    Q.store[,,s] <- Q
+    B0.store[,,s] <- B0
+    B0.mean <- apply(B0.store,1:2,mean)
+    B1.store[,,s] <- B1
+    B1.mean <- apply(B1.store,1:2,mean)
+  }
+return(list(B0.mean, B1.mean, A.posterior.store, Sigma.posterior.store))
+}
+#fit model 
+############################################################
+# Extension
+=======
 ```{r random walks 2}
+
 set.seed(2024)
 RW11 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
 RW22 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
 RW12  <- cbind(RW11, RW22)
 ```
 
+
+RW.1 <- cbind(RW11,RW22)
+# Create Y and X matries
+#########################################################
+kappa.1     <- 0.02^2
+kappa.2     <- 100
+lambda      <- 5
+S.prior.lambda     <- 5
+nu.prior.lambda    <- 5
+p =1
+S            = 1000         # sample size
+sign.restrictions = c(1,1)
+
+extended_model_result = extended_model_fit(data = RW.1, kappa.1=kappa.1, kappa.2=kappa.2, lambda = lambda, S.prior.lambda = S.prior.lambda, nu.prior.lambda = nu.prior.lambda, p=p, S = S, sign.restrictions = sign.restrictions)
+B0.mean = extended_model_result[[1]]
+B1.mean = extended_model_result[[2]]
+A.posterior.store = extended_model_result[[3]]
+Sigma.posterior.store = extended_model_result[[4]]
+```
+
+```{r random walk extension Matrix B0}
+#| label: table - RW Extension B0
+#| tbl-cap: Mean of the Matrix B[0]
+B0.RW.t <- as.data.frame(B0.mean)
+knitr::kable(B0.RW.t, index = FALSE)
+```
+
+```{r random walk extension Matrix B+}
+#| label: table - RW Extension B+
+#| tbl-cap: Mean of the Matrix B[+]
+B1.RW.t <- as.data.frame(B1.mean)
+knitr::kable(B1.RW.t, index = FALSE)
+```
+
+```{r random walk extension A posterior}
+#| label: table - RW Extension A Posterior
+#| tbl-cap: Mean of the A posterior
+A.RW.t <- as.data.frame(apply(A.posterior.store, 1:2, mean))
+knitr::kable(A.RW.t, index = FALSE)
+```
+
+```{r random walk extension Sigma posterior}
+#| label: table - RW Extension Sigma Posterior
+#| tbl-cap: Mean of the Sigma posterior
+Sigma.RW.t <- as.data.frame(apply(Sigma.posterior.store, 1:2, mean))
+knitr::kable(Sigma.RW.t, index = FALSE)
+=======
 ```{r, random walk extended model posterior distribution, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
@@ -1552,6 +1829,7 @@ extended <- function(data, sign.restrictions, p, S) {
 
 ```{r extended model result}
 extended <- extended(data=variables, sign.restrictions=c(-1, 1, -1, 1, 0, 0), p=4, S=50000)
+
 ```
 
 ```{r extended model Matrix B0}
@@ -1754,7 +2032,11 @@ for (n in 1:N){
   }
 ```
 
+
+# Empirical Results
+=======
 ## 5.3 Bayesian SVAR Model with Common Stochastic Volatility
+
 
 
 
