@@ -324,7 +324,7 @@ Table&nbsp;1: Data source
 </figcaption>
 </figure>
 </div>
-<p>GDP, interest rates, consumer price index, exchange rates, stock prices and stock price volatility are plotted in Figure 1. GDP exhibits an upward trend except for a trough during COVID-19. Interest rates depict a gradual downward trend; however, from 2022 Q4, there has been a significant increase in interest rates. There is an overall upward trend of stock prices, however, with the exception of the Global Financial Crisis, where the stock prices have shown great volatility by increasing and decreasing in large amounts. <strong>Stock price volatility is the log of bipower variation.</strong></p>
+<p>GDP, interest rates, consumer price index, exchange rates, stock prices and stock price volatility are plotted in Figure 1. GDP exhibits an upward trend except for a trough during COVID-19. Interest rates depict a gradual downward trend; however, from 2022 Q4, there has been a significant increase in interest rates. There is an overall upward trend of stock prices, however, with the exception of the Global Financial Crisis, where the stock prices have shown great volatility by increasing and decreasing in large amounts.</p>
 <p><br></p>
 <div class="cell" data-layout-align="center">
 <div id="fig-TSplots1" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
@@ -927,11 +927,11 @@ y_t =
 <li>Draw <span class="math inline">\(A^{(s)} \sim P(A|Y,X,\Sigma^{(s)})\)</span> from the <span class="math inline">\(\mathcal{MN}_{K \times N}(\overline{A},\Sigma^{(s)}, \overline{V})\)</span> distribution using the draw <span class="math inline">\(\Sigma^{(s)}\)</span>.</li>
 </ol>
 <p>Output is the sample draws from the joint posterior distribution <span class="math inline">\(\left\{ {A^{(s)}, \Sigma^{(s)}}\right\}^{S}_{s=1}\)</span>.</p>
-<p>The function below computes prior distribution.</p>
+<p>The <code>prior.distribution</code> function below computes prior distribution.</p>
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>See R code</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>prior.distribution <span class="ot">&lt;-</span> <span class="cf">function</span> (N, p) {</span>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>prior.distribution <span class="ot">&lt;-</span> <span class="cf">function</span>(N, p) {</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Prior distribution</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="do">############################################################</span></span>
@@ -958,11 +958,11 @@ y_t =
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The function below computes posterior distribution.</p>
+<p>The function <code>baseline.posterior</code> below computes posterior distribution of the standard model.</p>
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>See R code</summary>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>baseline.posterior <span class="ot">&lt;-</span> <span class="cf">function</span> (X, Y, N, p, S, prior.distribution) {</span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>baseline.posterior <span class="ot">&lt;-</span> <span class="cf">function</span>(X, Y, N, p, S, prior.distribution) {</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  A.prior  <span class="ot">&lt;-</span> prior.distribution<span class="sc">$</span>A.prior</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  V.prior  <span class="ot">&lt;-</span> prior.distribution<span class="sc">$</span>V.prior</span>
@@ -1013,7 +1013,7 @@ y_t =
 <span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>The function below imposes sign restrictions.</p>
+<p>The <code>RW.identification</code> function below imposes sign restrictions on the random walk process.</p>
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>See R code</summary>
@@ -1271,7 +1271,7 @@ p(\lambda|Y,X, A,\Sigma) = \mathcal{IG}2(\overline{s_{\lambda}},\overline{\nu_{\
 <li>Draw <span class="math inline">\(\lambda^{(s)} \sim P(\lambda|Y,X,A^{(s)},\Sigma^{(s)})\)</span> from <span class="math inline">\(\mathcal{IG}2(\overline{S_{\lambda}},\overline{\nu_{\lambda}})\)</span> distribution using the draws <span class="math inline">\(A^{(s)}\)</span> and <span class="math inline">\(\Sigma^{(s)}\)</span>.</li>
 </ol>
 <p>Output is the sample draws from the joint posterior distribution <span class="math inline">\(\left\{ {A^{(s)}, \Sigma^{(s)}} ,\lambda^{(s)}\right\}^{S}_{s=1}\)</span>.</p>
-<p>Applying same method as 4.1.3, except for applying the function below to compute posterior distribution for t-distributed error model.</p>
+<p>Applying same method as 4.1.3, except for applying the function <code>extended.posterior</code> below to compute posterior distribution for t-distributed error model.</p>
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>See R code</summary>
@@ -1494,10 +1494,11 @@ p(A,\Sigma|X,Y,\sigma^2) \propto L(A,\Sigma|Y,X,\sigma^2) \times  p(A|\Sigma) \t
 <h3 class="anchored" data-anchor-id="algorithm">4.3.3 Algorithm</h3>
 <section id="gibbs-sampler-2" class="level4">
 <h4 class="anchored" data-anchor-id="gibbs-sampler-2"><strong>Gibbs Sampler</strong></h4>
+<p>The function <code>SVcommon.Gibbs.iteration</code> below computes Gibbs sampler for the stochastic volatility.</p>
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>See R code</summary>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>SVcommon.Gibbs.iteration <span class="ot">&lt;-</span> <span class="cf">function</span>(aux, priors){</span>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>SVcommon.Gibbs.iteration <span class="ot">&lt;-</span> <span class="cf">function</span>(aux, priors) {</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># A single iteration of the Gibbs sampler for the SV component</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">#</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># aux is a list containing:</span></span>
@@ -1573,10 +1574,11 @@ p(A,\Sigma|X,Y,\sigma^2) \propto L(A,\Sigma|Y,X,\sigma^2) \times  p(A|\Sigma) \t
 <span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+<p>The function <code>SV.baseline.posterior</code> below computes posterior distribution of the standard model with stochastic volatility.</p>
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>See R code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>SV.baseline.posterior <span class="ot">&lt;-</span> <span class="cf">function</span>(Y, X, S, prior.distribution){</span>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>SV.baseline.posterior <span class="ot">&lt;-</span> <span class="cf">function</span>(Y, X, S, prior.distribution) {</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">ncol</span>(Y)</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  K <span class="ot">&lt;-</span> <span class="fu">ncol</span>(X)</span>
@@ -1774,7 +1776,7 @@ p(A,\Sigma|X,Y,\sigma^2) \propto L(A,\Sigma|Y,X,\sigma^2) \times  p(A|\Sigma) \t
 <img src="index_files/figure-html/fig-baseline-H-posterior-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-baseline-H-posterior-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Plot of posterior mean of stochastic volatility
+Figure&nbsp;5: Plot of posterior mean of stochastic volatility (standard model with stochastic volatility)
 </figcaption>
 </figure>
 </div>
@@ -1861,10 +1863,11 @@ p(\lambda|Y,X,A,\Sigma,\sigma^2) = \mathcal{IG}2(\overline{s_{\lambda}},\overlin
 <li>Draw <span class="math inline">\(h_t^{(0)}\)</span>.</li>
 </ol>
 <p>Output is the sample draws from the joint posterior distribution <span class="math inline">\(\left\{ {A^{(s)}, \Sigma^{(s)}} , \sigma^{2(s)} , \lambda^{(s)}\right\}^{S}_{s=1}\)</span>.</p>
+<p>The function <code>SV.extended.posterior</code> below computes posterior distribution of the t-distributed error model with stochastic volatility.</p>
 <div class="cell" data-layout-align="center">
 <details class="code-fold">
 <summary>See R code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>SV.extended.posterior <span class="ot">&lt;-</span> <span class="cf">function</span>(Y, X, S, prior.distribution){</span>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>SV.extended.posterior <span class="ot">&lt;-</span> <span class="cf">function</span>(Y, X, S, prior.distribution) {</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">ncol</span>(Y)</span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  K <span class="ot">&lt;-</span> <span class="fu">ncol</span>(X)</span>
@@ -1967,10 +1970,6 @@ p(\lambda|Y,X,A,\Sigma,\sigma^2) = \mathcal{IG}2(\overline{s_{\lambda}},\overlin
 </details>
 </div>
 <div class="cell" data-layout-align="center">
-<p>$B0.mean [,1] [,2] [1,] 14.339477 0.5894563 [2,] 2.059249 14.8470520</p>
-<p>$B1.mean [,1] [,2] [,3] [1,] 1.5864012 14.125451 0.6601425 [2,] -0.4303317 2.266647 14.6987902</p>
-</div>
-<div class="cell" data-layout-align="center">
 <table class="table table-sm table-striped small">
 <caption>Mean of <span class="math inline">\(B_0\)</span> Matrix</caption>
 <tbody>
@@ -2067,7 +2066,7 @@ p(\lambda|Y,X,A,\Sigma,\sigma^2) = \mathcal{IG}2(\overline{s_{\lambda}},\overlin
 <img src="index_files/figure-html/fig-extended-H-posterior-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-extended-H-posterior-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6: Plot of <span class="math inline">\(A\)</span> and <span class="math inline">\(\Sigma\)</span> posterior draws -Baseline model
+Figure&nbsp;6: Plot of posterior mean of stochastic volatility (t-distributed error model with stochastic volatility)
 </figcaption>
 </figure>
 </div>
@@ -2086,52 +2085,52 @@ Figure&nbsp;6: Plot of <span class="math inline">\(A\)</span> and <span class="m
 <caption>Mean of <span class="math inline">\(B_0\)</span> inverse Matrix</caption>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">-0.0031</td>
-<td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">-0.0033</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0e+00</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">0.0014</td>
-<td style="text-align: right;">0.1042</td>
-<td style="text-align: right;">-0.0009</td>
-<td style="text-align: right;">0.0047</td>
-<td style="text-align: right;">-0.0039</td>
-<td style="text-align: right;">0.0008</td>
+<td style="text-align: right;">-9e-04</td>
+<td style="text-align: right;">0.0999</td>
+<td style="text-align: right;">3e-04</td>
+<td style="text-align: right;">-1e-04</td>
+<td style="text-align: right;">0.0026</td>
+<td style="text-align: right;">6e-04</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0e+00</td>
 <td style="text-align: right;">-0.0017</td>
+<td style="text-align: right;">1e-04</td>
+<td style="text-align: right;">0e+00</td>
 <td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0001</td>
+<td style="text-align: right;">0e+00</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">0.0004</td>
-<td style="text-align: right;">0.0121</td>
-<td style="text-align: right;">-0.0005</td>
-<td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-2e-04</td>
+<td style="text-align: right;">0.0119</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">-1e-04</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">0.0011</td>
-<td style="text-align: right;">0.0031</td>
-<td style="text-align: right;">-0.0012</td>
-<td style="text-align: right;">-0.0005</td>
-<td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">0.0002</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0039</td>
+<td style="text-align: right;">2e-04</td>
+<td style="text-align: right;">2e-04</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-1e-04</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">-0.0025</td>
-<td style="text-align: right;">-0.0208</td>
-<td style="text-align: right;">-0.0010</td>
-<td style="text-align: right;">0.0115</td>
-<td style="text-align: right;">-0.0012</td>
-<td style="text-align: right;">0.0091</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">-0.0269</td>
+<td style="text-align: right;">-3e-04</td>
+<td style="text-align: right;">6e-04</td>
+<td style="text-align: right;">-0.0003</td>
+<td style="text-align: right;">1e-03</td>
 </tr>
 </tbody>
 </table>
@@ -2152,204 +2151,204 @@ Figure&nbsp;6: Plot of <span class="math inline">\(A\)</span> and <span class="m
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">0.0801</td>
-<td style="text-align: right;">1.9567</td>
-<td style="text-align: right;">0.0061</td>
-<td style="text-align: right;">0.0805</td>
-<td style="text-align: right;">0.1246</td>
-<td style="text-align: right;">-3.8141</td>
+<td style="text-align: right;">0.0799</td>
+<td style="text-align: right;">1.9850</td>
+<td style="text-align: right;">0.0070</td>
+<td style="text-align: right;">0.0816</td>
+<td style="text-align: right;">0.1230</td>
+<td style="text-align: right;">-3.9366</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">0.9908</td>
-<td style="text-align: right;">-0.1807</td>
-<td style="text-align: right;">-0.0008</td>
-<td style="text-align: right;">0.0067</td>
-<td style="text-align: right;">0.0289</td>
-<td style="text-align: right;">-0.5126</td>
+<td style="text-align: right;">0.9905</td>
+<td style="text-align: right;">-0.1831</td>
+<td style="text-align: right;">-0.0010</td>
+<td style="text-align: right;">0.0054</td>
+<td style="text-align: right;">0.0269</td>
+<td style="text-align: right;">-0.4945</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">-0.0027</td>
-<td style="text-align: right;">1.4610</td>
-<td style="text-align: right;">0.0042</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0036</td>
-<td style="text-align: right;">-0.0633</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">-0.0058</td>
-<td style="text-align: right;">-0.1988</td>
-<td style="text-align: right;">0.9992</td>
-<td style="text-align: right;">-0.0023</td>
-<td style="text-align: right;">0.0081</td>
-<td style="text-align: right;">-0.3315</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0013</td>
-<td style="text-align: right;">0.0618</td>
 <td style="text-align: right;">-0.0026</td>
-<td style="text-align: right;">0.9837</td>
-<td style="text-align: right;">-0.0066</td>
-<td style="text-align: right;">0.2121</td>
+<td style="text-align: right;">1.4587</td>
+<td style="text-align: right;">0.0041</td>
+<td style="text-align: right;">-0.0003</td>
+<td style="text-align: right;">0.0029</td>
+<td style="text-align: right;">-0.0561</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">0.0025</td>
-<td style="text-align: right;">0.1619</td>
-<td style="text-align: right;">0.0016</td>
+<td style="text-align: right;">-0.0059</td>
+<td style="text-align: right;">-0.1977</td>
+<td style="text-align: right;">0.9991</td>
+<td style="text-align: right;">-0.0036</td>
+<td style="text-align: right;">0.0093</td>
+<td style="text-align: right;">-0.3338</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0015</td>
+<td style="text-align: right;">0.0592</td>
+<td style="text-align: right;">-0.0026</td>
+<td style="text-align: right;">0.9833</td>
+<td style="text-align: right;">-0.0076</td>
+<td style="text-align: right;">0.2035</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0027</td>
+<td style="text-align: right;">0.1646</td>
+<td style="text-align: right;">0.0017</td>
 <td style="text-align: right;">0.0032</td>
-<td style="text-align: right;">0.9806</td>
-<td style="text-align: right;">0.6889</td>
+<td style="text-align: right;">0.9802</td>
+<td style="text-align: right;">0.6977</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">-0.0044</td>
-<td style="text-align: right;">-0.0696</td>
+<td style="text-align: right;">-0.0693</td>
 <td style="text-align: right;">-0.0006</td>
-<td style="text-align: right;">-0.0030</td>
-<td style="text-align: right;">-0.0211</td>
-<td style="text-align: right;">0.4580</td>
+<td style="text-align: right;">-0.0033</td>
+<td style="text-align: right;">-0.0213</td>
+<td style="text-align: right;">0.4604</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">-0.0018</td>
-<td style="text-align: right;">-0.0399</td>
+<td style="text-align: right;">-0.0019</td>
+<td style="text-align: right;">-0.0466</td>
 <td style="text-align: right;">-0.0001</td>
-<td style="text-align: right;">0.0021</td>
-<td style="text-align: right;">0.0074</td>
-<td style="text-align: right;">-0.1306</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0027</td>
-<td style="text-align: right;">-0.4604</td>
-<td style="text-align: right;">-0.0032</td>
-<td style="text-align: right;">-0.0052</td>
-<td style="text-align: right;">-0.0171</td>
-<td style="text-align: right;">0.0176</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">-0.0011</td>
-<td style="text-align: right;">-0.0606</td>
-<td style="text-align: right;">-0.0003</td>
-<td style="text-align: right;">-0.0005</td>
-<td style="text-align: right;">0.0030</td>
-<td style="text-align: right;">-0.0881</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0011</td>
-<td style="text-align: right;">-0.0671</td>
-<td style="text-align: right;">-0.0007</td>
-<td style="text-align: right;">-0.0140</td>
-<td style="text-align: right;">-0.0076</td>
-<td style="text-align: right;">0.0806</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0013</td>
-<td style="text-align: right;">-0.0017</td>
-<td style="text-align: right;">0.0004</td>
-<td style="text-align: right;">-0.0070</td>
-<td style="text-align: right;">-0.0219</td>
-<td style="text-align: right;">0.1778</td>
+<td style="text-align: right;">0.0017</td>
+<td style="text-align: right;">0.0072</td>
+<td style="text-align: right;">-0.1271</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">0.0025</td>
-<td style="text-align: right;">0.1006</td>
-<td style="text-align: right;">0.0012</td>
-<td style="text-align: right;">0.0066</td>
-<td style="text-align: right;">0.0118</td>
-<td style="text-align: right;">0.0904</td>
+<td style="text-align: right;">-0.4611</td>
+<td style="text-align: right;">-0.0032</td>
+<td style="text-align: right;">-0.0052</td>
+<td style="text-align: right;">-0.0164</td>
+<td style="text-align: right;">0.0115</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">-0.0007</td>
-<td style="text-align: right;">-0.0229</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0003</td>
-<td style="text-align: right;">0.0031</td>
-<td style="text-align: right;">-0.0637</td>
+<td style="text-align: right;">-0.0013</td>
+<td style="text-align: right;">-0.0564</td>
+<td style="text-align: right;">-0.0003</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0038</td>
+<td style="text-align: right;">-0.0909</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">-0.0001</td>
-<td style="text-align: right;">-0.0809</td>
-<td style="text-align: right;">-0.0006</td>
-<td style="text-align: right;">0.0039</td>
-<td style="text-align: right;">0.0068</td>
-<td style="text-align: right;">-0.0028</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">-0.0007</td>
-<td style="text-align: right;">-0.0275</td>
-<td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">0.0009</td>
-<td style="text-align: right;">-0.0330</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0004</td>
-<td style="text-align: right;">-0.0485</td>
-<td style="text-align: right;">-0.0001</td>
-<td style="text-align: right;">-0.0064</td>
-<td style="text-align: right;">-0.0018</td>
-<td style="text-align: right;">0.0275</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0006</td>
-<td style="text-align: right;">-0.0169</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">-0.0017</td>
-<td style="text-align: right;">-0.0100</td>
-<td style="text-align: right;">0.0651</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0014</td>
-<td style="text-align: right;">-0.0423</td>
-<td style="text-align: right;">-0.0002</td>
 <td style="text-align: right;">0.0010</td>
-<td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">0.1002</td>
+<td style="text-align: right;">-0.0636</td>
+<td style="text-align: right;">-0.0006</td>
+<td style="text-align: right;">-0.0140</td>
+<td style="text-align: right;">-0.0077</td>
+<td style="text-align: right;">0.0872</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0013</td>
+<td style="text-align: right;">-0.0023</td>
+<td style="text-align: right;">0.0005</td>
+<td style="text-align: right;">-0.0064</td>
+<td style="text-align: right;">-0.0217</td>
+<td style="text-align: right;">0.1758</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0025</td>
+<td style="text-align: right;">0.1017</td>
+<td style="text-align: right;">0.0012</td>
+<td style="text-align: right;">0.0067</td>
+<td style="text-align: right;">0.0118</td>
+<td style="text-align: right;">0.0915</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0007</td>
+<td style="text-align: right;">-0.0253</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0008</td>
+<td style="text-align: right;">0.0033</td>
+<td style="text-align: right;">-0.0606</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">-0.0762</td>
+<td style="text-align: right;">-0.0005</td>
+<td style="text-align: right;">0.0045</td>
+<td style="text-align: right;">0.0069</td>
+<td style="text-align: right;">-0.0016</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">-0.0004</td>
-<td style="text-align: right;">-0.0156</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0007</td>
-<td style="text-align: right;">0.0027</td>
+<td style="text-align: right;">-0.0276</td>
+<td style="text-align: right;">-0.0001</td>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">0.0019</td>
 <td style="text-align: right;">-0.0375</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">-0.0011</td>
-<td style="text-align: right;">0.0107</td>
+<td style="text-align: right;">0.0004</td>
+<td style="text-align: right;">-0.0477</td>
+<td style="text-align: right;">-0.0001</td>
+<td style="text-align: right;">-0.0066</td>
+<td style="text-align: right;">-0.0018</td>
+<td style="text-align: right;">0.0321</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0006</td>
+<td style="text-align: right;">-0.0123</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">-0.0014</td>
+<td style="text-align: right;">-0.0093</td>
+<td style="text-align: right;">0.0580</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0014</td>
+<td style="text-align: right;">-0.0430</td>
 <td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">0.0007</td>
-<td style="text-align: right;">0.0038</td>
-<td style="text-align: right;">0.0712</td>
+<td style="text-align: right;">0.0012</td>
+<td style="text-align: right;">0.0002</td>
+<td style="text-align: right;">0.0994</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">-0.0003</td>
-<td style="text-align: right;">-0.0141</td>
-<td style="text-align: right;">-0.0001</td>
-<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">-0.0165</td>
+<td style="text-align: right;">0.0000</td>
 <td style="text-align: right;">0.0007</td>
-<td style="text-align: right;">-0.0168</td>
+<td style="text-align: right;">0.0021</td>
+<td style="text-align: right;">-0.0281</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">-0.0216</td>
+<td style="text-align: right;">-0.0011</td>
+<td style="text-align: right;">0.0089</td>
+<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">0.0006</td>
+<td style="text-align: right;">0.0038</td>
+<td style="text-align: right;">0.0701</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">-0.0138</td>
+<td style="text-align: right;">-0.0001</td>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">0.0012</td>
+<td style="text-align: right;">-0.0226</td>
+</tr>
+<tr class="odd">
 <td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0033</td>
-<td style="text-align: right;">0.0010</td>
-<td style="text-align: right;">0.0241</td>
+<td style="text-align: right;">-0.0226</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0034</td>
+<td style="text-align: right;">0.0012</td>
+<td style="text-align: right;">0.0230</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">-0.0066</td>
+<td style="text-align: right;">-0.0096</td>
 <td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">-0.0001</td>
-<td style="text-align: right;">-0.0036</td>
-<td style="text-align: right;">0.0285</td>
+<td style="text-align: right;">-0.0003</td>
+<td style="text-align: right;">-0.0038</td>
+<td style="text-align: right;">0.0276</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">0.0005</td>
-<td style="text-align: right;">-0.0166</td>
+<td style="text-align: right;">-0.0152</td>
 <td style="text-align: right;">0.0007</td>
-<td style="text-align: right;">0.0045</td>
-<td style="text-align: right;">-0.0020</td>
-<td style="text-align: right;">-0.0479</td>
+<td style="text-align: right;">0.0047</td>
+<td style="text-align: right;">-0.0018</td>
+<td style="text-align: right;">-0.0494</td>
 </tr>
 </tbody>
 </table>
@@ -2382,11 +2381,11 @@ Figure&nbsp;6: Plot of <span class="math inline">\(A\)</span> and <span class="m
 </tr>
 <tr class="even">
 <td style="text-align: right;">3e-04</td>
-<td style="text-align: right;">0.0925</td>
+<td style="text-align: right;">0.0922</td>
 <td style="text-align: right;">4e-04</td>
 <td style="text-align: right;">0.0043</td>
 <td style="text-align: right;">0.0019</td>
-<td style="text-align: right;">-0.0035</td>
+<td style="text-align: right;">-0.0034</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">0e+00</td>
@@ -2402,7 +2401,7 @@ Figure&nbsp;6: Plot of <span class="math inline">\(A\)</span> and <span class="m
 <td style="text-align: right;">0e+00</td>
 <td style="text-align: right;">0.0012</td>
 <td style="text-align: right;">0.0009</td>
-<td style="text-align: right;">-0.0067</td>
+<td style="text-align: right;">-0.0066</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">1e-04</td>
@@ -2414,11 +2413,11 @@ Figure&nbsp;6: Plot of <span class="math inline">\(A\)</span> and <span class="m
 </tr>
 <tr class="even">
 <td style="text-align: right;">-5e-04</td>
-<td style="text-align: right;">-0.0035</td>
+<td style="text-align: right;">-0.0034</td>
 <td style="text-align: right;">-3e-04</td>
-<td style="text-align: right;">-0.0067</td>
+<td style="text-align: right;">-0.0066</td>
 <td style="text-align: right;">-0.0155</td>
-<td style="text-align: right;">0.3219</td>
+<td style="text-align: right;">0.3215</td>
 </tr>
 </tbody>
 </table>
@@ -2433,7 +2432,7 @@ Figure&nbsp;6: Plot of <span class="math inline">\(A\)</span> and <span class="m
 <img src="index_files/figure-html/fig-baseline-posteriors-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-baseline-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7: Plot of <span class="math inline">\(A\)</span> and <span class="math inline">\(\Sigma\)</span> posterior draws -Baseline model
+Figure&nbsp;7: Trace plot of <span class="math inline">\(A\)</span> and <span class="math inline">\(\Sigma\)</span> posterior draws (Standard model)
 </figcaption>
 </figure>
 </div>
@@ -2454,6 +2453,351 @@ Figure&nbsp;8: Plot of impulse response functions to monetary policy shock (Stan
 </section>
 <section id="bayesian-svar-model-with-t-distributed-errors-1" class="level2">
 <h2 class="anchored" data-anchor-id="bayesian-svar-model-with-t-distributed-errors-1">5.2 Bayesian SVAR Model with <em>t</em>-distributed Errors</h2>
+<div class="cell" data-layout-align="center">
+<table class="table table-sm table-striped small">
+<caption>Mean of <span class="math inline">\(B_0\)</span> inverse Matrix</caption>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">-0.0009</td>
+<td style="text-align: right;">-0.0033</td>
+<td style="text-align: right;">-0.0007</td>
+<td style="text-align: right;">-0.0006</td>
+<td style="text-align: right;">0.0015</td>
+<td style="text-align: right;">0.0001</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0250</td>
+<td style="text-align: right;">0.0660</td>
+<td style="text-align: right;">-0.0753</td>
+<td style="text-align: right;">-0.0654</td>
+<td style="text-align: right;">0.1633</td>
+<td style="text-align: right;">0.0232</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.0007</td>
+<td style="text-align: right;">-0.0020</td>
+<td style="text-align: right;">-0.0019</td>
+<td style="text-align: right;">0.0004</td>
+<td style="text-align: right;">0.0013</td>
+<td style="text-align: right;">0.0005</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0023</td>
+<td style="text-align: right;">0.0137</td>
+<td style="text-align: right;">0.0029</td>
+<td style="text-align: right;">0.0015</td>
+<td style="text-align: right;">0.0068</td>
+<td style="text-align: right;">0.0019</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.0212</td>
+<td style="text-align: right;">0.0209</td>
+<td style="text-align: right;">0.0103</td>
+<td style="text-align: right;">-0.0022</td>
+<td style="text-align: right;">0.0118</td>
+<td style="text-align: right;">0.0016</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0561</td>
+<td style="text-align: right;">-0.1495</td>
+<td style="text-align: right;">-0.0985</td>
+<td style="text-align: right;">0.0707</td>
+<td style="text-align: right;">0.0330</td>
+<td style="text-align: right;">-0.1792</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="cell" data-layout-align="center">
+<div>
+<table data-quarto-postprocess="true" class="table table-sm table-striped small">
+<caption>Mean of the <span class="math inline">\(A\)</span> posterior</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;" data-quarto-table-cell-role="th">gdp</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ICR</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">cpi</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">EXR</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">stp</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">vol</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.0966</td>
+<td style="text-align: right;">2.5974</td>
+<td style="text-align: right;">-0.0027</td>
+<td style="text-align: right;">0.0417</td>
+<td style="text-align: right;">0.1590</td>
+<td style="text-align: right;">-3.7606</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.9891</td>
+<td style="text-align: right;">-0.3213</td>
+<td style="text-align: right;">-0.0033</td>
+<td style="text-align: right;">-0.0063</td>
+<td style="text-align: right;">0.0337</td>
+<td style="text-align: right;">-0.7252</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.0034</td>
+<td style="text-align: right;">1.4675</td>
+<td style="text-align: right;">0.0048</td>
+<td style="text-align: right;">-0.0006</td>
+<td style="text-align: right;">0.0083</td>
+<td style="text-align: right;">-0.0325</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0024</td>
+<td style="text-align: right;">0.0101</td>
+<td style="text-align: right;">1.0039</td>
+<td style="text-align: right;">0.0148</td>
+<td style="text-align: right;">0.0050</td>
+<td style="text-align: right;">-0.2930</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0046</td>
+<td style="text-align: right;">0.0043</td>
+<td style="text-align: right;">-0.0047</td>
+<td style="text-align: right;">0.9851</td>
+<td style="text-align: right;">-0.0063</td>
+<td style="text-align: right;">-0.0579</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0015</td>
+<td style="text-align: right;">0.0728</td>
+<td style="text-align: right;">0.0017</td>
+<td style="text-align: right;">0.0158</td>
+<td style="text-align: right;">0.9989</td>
+<td style="text-align: right;">0.6468</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.0037</td>
+<td style="text-align: right;">-0.0676</td>
+<td style="text-align: right;">-0.0010</td>
+<td style="text-align: right;">-0.0044</td>
+<td style="text-align: right;">-0.0194</td>
+<td style="text-align: right;">0.4653</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0010</td>
+<td style="text-align: right;">-0.1192</td>
+<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">-0.0036</td>
+<td style="text-align: right;">-0.0046</td>
+<td style="text-align: right;">0.0200</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0026</td>
+<td style="text-align: right;">-0.5024</td>
+<td style="text-align: right;">-0.0037</td>
+<td style="text-align: right;">-0.0118</td>
+<td style="text-align: right;">-0.0277</td>
+<td style="text-align: right;">-0.0249</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0013</td>
+<td style="text-align: right;">0.0772</td>
+<td style="text-align: right;">0.0006</td>
+<td style="text-align: right;">-0.0007</td>
+<td style="text-align: right;">-0.0090</td>
+<td style="text-align: right;">0.0680</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0022</td>
+<td style="text-align: right;">-0.0511</td>
+<td style="text-align: right;">0.0006</td>
+<td style="text-align: right;">-0.0117</td>
+<td style="text-align: right;">0.0127</td>
+<td style="text-align: right;">-0.0177</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0011</td>
+<td style="text-align: right;">-0.0704</td>
+<td style="text-align: right;">-0.0006</td>
+<td style="text-align: right;">-0.0023</td>
+<td style="text-align: right;">-0.0213</td>
+<td style="text-align: right;">0.1406</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0029</td>
+<td style="text-align: right;">0.1187</td>
+<td style="text-align: right;">0.0013</td>
+<td style="text-align: right;">0.0049</td>
+<td style="text-align: right;">0.0110</td>
+<td style="text-align: right;">0.1330</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0024</td>
+<td style="text-align: right;">0.0351</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0021</td>
+<td style="text-align: right;">-0.0012</td>
+<td style="text-align: right;">0.0764</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0008</td>
+<td style="text-align: right;">-0.0563</td>
+<td style="text-align: right;">-0.0007</td>
+<td style="text-align: right;">0.0115</td>
+<td style="text-align: right;">0.0137</td>
+<td style="text-align: right;">-0.0220</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0022</td>
+<td style="text-align: right;">-0.0161</td>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">0.0050</td>
+<td style="text-align: right;">0.0103</td>
+<td style="text-align: right;">-0.1998</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.0018</td>
+<td style="text-align: right;">-0.1133</td>
+<td style="text-align: right;">-0.0007</td>
+<td style="text-align: right;">-0.0117</td>
+<td style="text-align: right;">-0.0089</td>
+<td style="text-align: right;">0.0416</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">-0.0368</td>
+<td style="text-align: right;">0.0009</td>
+<td style="text-align: right;">-0.0102</td>
+<td style="text-align: right;">-0.0110</td>
+<td style="text-align: right;">0.0378</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0004</td>
+<td style="text-align: right;">-0.1030</td>
+<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">-0.0012</td>
+<td style="text-align: right;">-0.0019</td>
+<td style="text-align: right;">0.0744</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0005</td>
+<td style="text-align: right;">-0.0801</td>
+<td style="text-align: right;">-0.0009</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">-0.0047</td>
+<td style="text-align: right;">0.0819</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.0015</td>
+<td style="text-align: right;">0.0141</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0012</td>
+<td style="text-align: right;">0.0039</td>
+<td style="text-align: right;">0.0883</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0011</td>
+<td style="text-align: right;">-0.0015</td>
+<td style="text-align: right;">-0.0008</td>
+<td style="text-align: right;">-0.0031</td>
+<td style="text-align: right;">-0.0041</td>
+<td style="text-align: right;">0.0555</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">0.0610</td>
+<td style="text-align: right;">0.0005</td>
+<td style="text-align: right;">0.0005</td>
+<td style="text-align: right;">0.0002</td>
+<td style="text-align: right;">0.1424</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0011</td>
+<td style="text-align: right;">0.0755</td>
+<td style="text-align: right;">0.0009</td>
+<td style="text-align: right;">-0.0041</td>
+<td style="text-align: right;">-0.0093</td>
+<td style="text-align: right;">-0.0098</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0004</td>
+<td style="text-align: right;">0.0490</td>
+<td style="text-align: right;">0.0008</td>
+<td style="text-align: right;">0.0081</td>
+<td style="text-align: right;">-0.0021</td>
+<td style="text-align: right;">-0.0238</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div>
+<table data-quarto-postprocess="true" class="table table-sm table-striped small">
+<caption>Mean of the <span class="math inline">\(\Sigma\)</span> posterior</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;" data-quarto-table-cell-role="th">gdp</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ICR</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">cpi</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">EXR</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">stp</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">vol</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1e-04</td>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">-0.0003</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3e-04</td>
+<td style="text-align: right;">0.0982</td>
+<td style="text-align: right;">4e-04</td>
+<td style="text-align: right;">0.0041</td>
+<td style="text-align: right;">0.0009</td>
+<td style="text-align: right;">0.0101</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0004</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">-0.0004</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0041</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0012</td>
+<td style="text-align: right;">0.0008</td>
+<td style="text-align: right;">-0.0058</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1e-04</td>
+<td style="text-align: right;">0.0009</td>
+<td style="text-align: right;">1e-04</td>
+<td style="text-align: right;">0.0008</td>
+<td style="text-align: right;">0.0028</td>
+<td style="text-align: right;">-0.0154</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-3e-04</td>
+<td style="text-align: right;">0.0101</td>
+<td style="text-align: right;">-4e-04</td>
+<td style="text-align: right;">-0.0058</td>
+<td style="text-align: right;">-0.0154</td>
+<td style="text-align: right;">0.3472</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
 <p>Impulse response functions of the t-distributed innovation model show a positive monetary policy shock on variables. In the short run, interest rates immediately respond to the shock and normalise after five years. The consumer price index slightly decreases in the short run. There are no significant effects on GDP, stock prices, or stock price volatility. Consumer price index and exchange rates decrease slightly but are also insignificant. GDP is the only variable that is statistically different from zero. Note that the shaded area represents 68% credibility interval.</p>
 <div class="cell" data-layout-align="center">
 <div id="fig-IRF-t-error" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
@@ -2476,52 +2820,52 @@ Figure&nbsp;9: Plot of impulse response functions to monetary policy shock (t-di
 <caption>Mean of <span class="math inline">\(B_0\)</span> inverse Matrix</caption>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0e+00</td>
 <td style="text-align: right;">-0.0004</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0000</td>
 <td style="text-align: right;">0e+00</td>
-<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">-0.0012</td>
-<td style="text-align: right;">0.0164</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0007</td>
-<td style="text-align: right;">5e-04</td>
-<td style="text-align: right;">0.0001</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0003</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0e+00</td>
-<td style="text-align: right;">0.0000</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0020</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0001</td>
 <td style="text-align: right;">-1e-04</td>
-<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">0.0163</td>
+<td style="text-align: right;">-3e-04</td>
+<td style="text-align: right;">-4e-04</td>
+<td style="text-align: right;">-3e-04</td>
+<td style="text-align: right;">0e+00</td>
 </tr>
 <tr class="odd">
+<td style="text-align: right;">0e+00</td>
 <td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">0.0003</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">-0.0001</td>
-<td style="text-align: right;">2e-04</td>
-<td style="text-align: right;">0.0002</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">0.0024</td>
-<td style="text-align: right;">-0.0095</td>
-<td style="text-align: right;">-0.0023</td>
-<td style="text-align: right;">0.0024</td>
-<td style="text-align: right;">-6e-04</td>
+<td style="text-align: right;">0e+00</td>
 <td style="text-align: right;">0.0019</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0005</td>
+<td style="text-align: right;">1e-04</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0e+00</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1e-04</td>
+<td style="text-align: right;">-0.0096</td>
+<td style="text-align: right;">-1e-03</td>
+<td style="text-align: right;">1e-04</td>
+<td style="text-align: right;">6e-04</td>
+<td style="text-align: right;">-1e-04</td>
 </tr>
 </tbody>
 </table>
@@ -2542,204 +2886,204 @@ Figure&nbsp;9: Plot of impulse response functions to monetary policy shock (t-di
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">0.0127</td>
-<td style="text-align: right;">-0.0599</td>
-<td style="text-align: right;">-0.0020</td>
-<td style="text-align: right;">0.0103</td>
-<td style="text-align: right;">0.0447</td>
-<td style="text-align: right;">-1.0296</td>
+<td style="text-align: right;">0.0129</td>
+<td style="text-align: right;">-0.0448</td>
+<td style="text-align: right;">-0.0023</td>
+<td style="text-align: right;">0.0111</td>
+<td style="text-align: right;">0.0469</td>
+<td style="text-align: right;">-1.0797</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">0.9996</td>
-<td style="text-align: right;">-0.0110</td>
+<td style="text-align: right;">0.9997</td>
+<td style="text-align: right;">-0.0063</td>
 <td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">0.0012</td>
-<td style="text-align: right;">0.0015</td>
-<td style="text-align: right;">-0.0590</td>
+<td style="text-align: right;">0.0010</td>
+<td style="text-align: right;">0.0010</td>
+<td style="text-align: right;">-0.0525</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">1.0709</td>
+<td style="text-align: right;">1.0675</td>
 <td style="text-align: right;">0.0007</td>
 <td style="text-align: right;">0.0012</td>
-<td style="text-align: right;">-0.0025</td>
-<td style="text-align: right;">-0.0140</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">-0.0004</td>
-<td style="text-align: right;">-0.0057</td>
-<td style="text-align: right;">1.0002</td>
-<td style="text-align: right;">0.0003</td>
-<td style="text-align: right;">-0.0006</td>
-<td style="text-align: right;">-0.0427</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">-0.0001</td>
-<td style="text-align: right;">-0.0031</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.9978</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0174</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0268</td>
-<td style="text-align: right;">0.0005</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.9964</td>
-<td style="text-align: right;">0.0196</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0003</td>
-<td style="text-align: right;">-0.0021</td>
-<td style="text-align: right;">0.0003</td>
-<td style="text-align: right;">0.0042</td>
-<td style="text-align: right;">-0.0016</td>
-<td style="text-align: right;">0.6604</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">-0.0001</td>
-<td style="text-align: right;">-0.0018</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0003</td>
-<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">-0.0028</td>
 <td style="text-align: right;">-0.0122</td>
 </tr>
-<tr class="odd">
-<td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">-0.0382</td>
-<td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">0.0004</td>
-<td style="text-align: right;">0.0011</td>
-<td style="text-align: right;">0.0068</td>
-</tr>
 <tr class="even">
-<td style="text-align: right;">-0.0001</td>
-<td style="text-align: right;">-0.0016</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">-0.0001</td>
-<td style="text-align: right;">-0.0078</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0037</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0008</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0033</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0080</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">-0.0013</td>
-<td style="text-align: right;">-0.0023</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">0.0073</td>
-<td style="text-align: right;">-0.0001</td>
-<td style="text-align: right;">0.0004</td>
-<td style="text-align: right;">0.0028</td>
-<td style="text-align: right;">-0.0018</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">-0.0001</td>
 <td style="text-align: right;">-0.0004</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0002</td>
+<td style="text-align: right;">-0.0064</td>
+<td style="text-align: right;">1.0002</td>
 <td style="text-align: right;">0.0004</td>
-<td style="text-align: right;">-0.0083</td>
+<td style="text-align: right;">-0.0005</td>
+<td style="text-align: right;">-0.0365</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">-0.0301</td>
-<td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">0.0009</td>
-<td style="text-align: right;">0.0030</td>
+<td style="text-align: right;">-0.0001</td>
+<td style="text-align: right;">-0.0075</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.9982</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0133</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0008</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">-0.0054</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0029</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0003</td>
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0010</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0018</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0003</td>
-<td style="text-align: right;">-0.0003</td>
-<td style="text-align: right;">-0.0029</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0009</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0010</td>
-<td style="text-align: right;">-0.0009</td>
-<td style="text-align: right;">0.0248</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0007</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0032</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">-0.0214</td>
-<td style="text-align: right;">-0.0002</td>
-<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">0.0253</td>
 <td style="text-align: right;">0.0005</td>
-<td style="text-align: right;">0.0047</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0.9960</td>
+<td style="text-align: right;">0.0170</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">-0.0016</td>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">0.0041</td>
+<td style="text-align: right;">-0.0021</td>
+<td style="text-align: right;">0.6665</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0001</td>
+<td style="text-align: right;">-0.0020</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0.0002</td>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">-0.0134</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0002</td>
+<td style="text-align: right;">-0.0363</td>
+<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">0.0004</td>
+<td style="text-align: right;">0.0010</td>
+<td style="text-align: right;">0.0083</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0001</td>
+<td style="text-align: right;">-0.0024</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0110</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0034</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0006</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0029</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0071</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0013</td>
+<td style="text-align: right;">-0.0021</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">0.0076</td>
+<td style="text-align: right;">-0.0001</td>
+<td style="text-align: right;">0.0002</td>
+<td style="text-align: right;">0.0027</td>
+<td style="text-align: right;">-0.0044</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">0.0000</td>
 <td style="text-align: right;">-0.0012</td>
 <td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0000</td>
 <td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">-0.0035</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">-0.0059</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0030</td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">-0.0002</td>
 <td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">0.0026</td>
+<td style="text-align: right;">-0.0295</td>
+<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0.0010</td>
+<td style="text-align: right;">0.0017</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0005</td>
+<td style="text-align: right;">-0.0013</td>
 <td style="text-align: right;">0.0000</td>
 <td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0044</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0026</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0003</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0.0009</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0023</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0002</td>
+<td style="text-align: right;">-0.0004</td>
+<td style="text-align: right;">-0.0028</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0.0012</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0010</td>
+<td style="text-align: right;">-0.0010</td>
+<td style="text-align: right;">0.0236</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0004</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0026</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0002</td>
+<td style="text-align: right;">-0.0220</td>
+<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">0.0006</td>
+<td style="text-align: right;">0.0036</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0008</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0000</td>
 <td style="text-align: right;">0.0000</td>
 <td style="text-align: right;">-0.0023</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0036</td>
+<td style="text-align: right;">-0.0017</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">-0.0002</td>
 <td style="text-align: right;">0.0001</td>
-<td style="text-align: right;">0.0006</td>
-<td style="text-align: right;">-0.0009</td>
-<td style="text-align: right;">-0.0063</td>
+<td style="text-align: right;">0.0010</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0004</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">-0.0002</td>
+<td style="text-align: right;">-0.0016</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.0039</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">0.0007</td>
+<td style="text-align: right;">-0.0010</td>
+<td style="text-align: right;">-0.0069</td>
 </tr>
 </tbody>
 </table>
@@ -2764,7 +3108,7 @@ Figure&nbsp;9: Plot of impulse response functions to monetary policy shock (t-di
 <tbody>
 <tr class="odd">
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0000</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0e+00</td>
 <td style="text-align: right;">0e+00</td>
@@ -2772,15 +3116,15 @@ Figure&nbsp;9: Plot of impulse response functions to monetary policy shock (t-di
 </tr>
 <tr class="even">
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">4e-03</td>
+<td style="text-align: right;">0.0032</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0e+00</td>
-<td style="text-align: right;">-2e-04</td>
-<td style="text-align: right;">0.0009</td>
+<td style="text-align: right;">-1e-04</td>
+<td style="text-align: right;">0.0007</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0000</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0e+00</td>
 <td style="text-align: right;">0e+00</td>
@@ -2788,27 +3132,27 @@ Figure&nbsp;9: Plot of impulse response functions to monetary policy shock (t-di
 </tr>
 <tr class="even">
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">0e+00</td>
+<td style="text-align: right;">0.0000</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0e+00</td>
 <td style="text-align: right;">0e+00</td>
-<td style="text-align: right;">-0.0003</td>
+<td style="text-align: right;">-0.0002</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">-2e-04</td>
+<td style="text-align: right;">-0.0001</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0e+00</td>
 <td style="text-align: right;">1e-04</td>
-<td style="text-align: right;">-0.0008</td>
+<td style="text-align: right;">-0.0006</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">9e-04</td>
+<td style="text-align: right;">0.0007</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">-3e-04</td>
-<td style="text-align: right;">-8e-04</td>
-<td style="text-align: right;">0.0204</td>
+<td style="text-align: right;">-2e-04</td>
+<td style="text-align: right;">-6e-04</td>
+<td style="text-align: right;">0.0167</td>
 </tr>
 </tbody>
 </table>
@@ -2816,6 +3160,7 @@ Figure&nbsp;9: Plot of impulse response functions to monetary policy shock (t-di
 
 </div>
 </div>
+<p>Impulse response functions of the standard model with stochastic volatility show a positive monetary policy shock on variables. In the short run, GDP and stock price volatility immediately respond to the shock and normalise within a year. No variables are statistically different from zero. Note that the shaded area represents 68% credibility interval.</p>
 <div class="cell" data-layout-align="center">
 <div id="fig-IRF-SV-standard" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
@@ -2835,7 +3180,7 @@ Figure&nbsp;10: Plot of impulse response functions to monetary policy shock (Sta
 </section>
 <section id="conclusion" class="level1">
 <h1>6. Conclusion</h1>
-<p>This research examines the impact of monetary policy shocks on stock price volatility in the Australian market. A SVAR model identified using sign restrictions. The findings from four models indicate a small negative influence of positive monetary policy shocks on GDP. The outcomes are promising for the use of Bayesian methods with volatility data, validating the use of heteroskedastic non-normal models for RW data. The study demonstrates the flexibility of Bayesian techniques for adapting to various modeling scenarios, suggesting that further enhancements and explorations of this approach are valuable for future studies.</p>
+<p>This research examines the impact of monetary policy shocks on stock price volatility in the Australian market. A SVAR model identified using sign restrictions. The findings from the first two models indicate a small negative influence of positive monetary policy shocks on GDP. The outcomes are promising for the use of Bayesian methods with volatility data, validating the use of heteroskedastic non-normal models for stock price volatility data. The study demonstrates the flexibility of Bayesian techniques for adapting to various modeling scenarios, suggesting that further enhancements and explorations of this approach are valuable for future studies.</p>
 <section id="references" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
 
