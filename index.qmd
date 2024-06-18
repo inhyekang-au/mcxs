@@ -40,7 +40,7 @@ library(kableExtra)
 
 ```{r}
 # Set up the global variable
-S.draws  <- 1000
+S.draws  <- 10000
 ```
 
 # 2. Data
@@ -120,7 +120,7 @@ vol <- log(VOL)
 index(vol) <- as.yearqtr(index(vol), format="%Y Q%q")  # log stock price volatility
 ```
 
-GDP, interest rates, consumer price index, exchange rates, stock prices and stock price volatility are plotted in Figure 1. GDP exhibits an upward trend except for a trough during COVID-19. Interest rates depict a gradual downward trend; however, from 2022 Q4, there has been a significant increase in interest rates. There is an overall upward trend of stock prices, however, with the exception of the Global Financial Crisis, where the stock prices have shown great volatility by increasing and decreasing in large amounts. **Stock price volatility is the log of bipower variation.**
+GDP, interest rates, consumer price index, exchange rates, stock prices and stock price volatility are plotted in Figure 1. GDP exhibits an upward trend except for a trough during COVID-19. Interest rates depict a gradual downward trend; however, from 2022 Q4, there has been a significant increase in interest rates. There is an overall upward trend of stock prices, however, with the exception of the Global Financial Crisis, where the stock prices have shown great volatility by increasing and decreasing in large amounts.
 
 <br>
 ```{r time series plots, fig.width=7, fig.height=6.5}
@@ -751,11 +751,11 @@ At each iteration $s$ where $s$ goes from 1 to $S$,
 
 Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}}\right\}^{S}_{s=1}$.
 
-The function below computes prior distribution.
+The `prior.distribution` function below computes prior distribution.
 ```{r prior distribution function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
-prior.distribution <- function (N, p) {
+prior.distribution <- function(N, p) {
   
   # Prior distribution
   ############################################################
@@ -782,11 +782,11 @@ prior.distribution <- function (N, p) {
 }
 ```
 
-The function below computes posterior distribution.
+The function `baseline.posterior` below computes posterior distribution of the standard model.
 ```{r baseline model posterior distribution function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
-baseline.posterior <- function (X, Y, N, p, S, prior.distribution) {
+baseline.posterior <- function(X, Y, N, p, S, prior.distribution) {
   
   A.prior  <- prior.distribution$A.prior
   V.prior  <- prior.distribution$V.prior
@@ -837,7 +837,7 @@ baseline.posterior <- function (X, Y, N, p, S, prior.distribution) {
 }
 ```
 
-The function below imposes sign restrictions.
+The `RW.identification` function below imposes sign restrictions on the random walk process.
 ```{r RW baseline model identification function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
@@ -1100,7 +1100,7 @@ At each iteration $s$ where $s$ goes from 1 to $S$,
 
 Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}} ,\lambda^{(s)}\right\}^{S}_{s=1}$.
 
-Applying same method as 4.1.3, except for applying the function below to compute posterior distribution for t-distributed error model. 
+Applying same method as 4.1.3, except for applying the function `extended.posterior` below to compute posterior distribution for t-distributed error model. 
 ```{r extended model posterior distribution function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
@@ -1305,10 +1305,11 @@ $$
 
 #### **Gibbs Sampler**
 
+The function `SVcommon.Gibbs.iteration` below computes Gibbs sampler for the stochastic volatility.
 ```{r echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
-SVcommon.Gibbs.iteration <- function(aux, priors){
+SVcommon.Gibbs.iteration <- function(aux, priors) {
   # A single iteration of the Gibbs sampler for the SV component
   #
   # aux is a list containing:
@@ -1384,10 +1385,11 @@ SVcommon.Gibbs.iteration <- function(aux, priors){
 }
 ```
 
+The function `SV.baseline.posterior` below computes posterior distribution of the standard model with stochastic volatility.
 ```{r SV baseline model posterior distribution function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
-SV.baseline.posterior <- function(Y, X, S, prior.distribution){
+SV.baseline.posterior <- function(Y, X, S, prior.distribution) {
   
   N <- ncol(Y)
   K <- ncol(X)
@@ -1558,8 +1560,7 @@ knitr::kable(Sigma.posterior.RW.baseline)
 Figure 5 provides a time series plot of posterior mean of $\sigma^2$. $\sigma^2$ oscillates around the value of 2100 over time.
 ```{r RW SV baseline model H posterior}
 #| label: fig-baseline-H-posterior 
-#| fig-cap: Plot of posterior mean of stochastic volatility
-
+#| fig-cap: Plot of posterior mean of stochastic volatility (standard model with stochastic volatility)
 sigma2.mean.vec <- apply(posterior.parameters$H.posterior, 1, mean) 
 plot.ts(sigma2.mean.vec, 
         main=expression(paste("Posterior Mean of ",sigma^2)),
@@ -1664,10 +1665,11 @@ At each iteration $s$ where $s$ goes from 1 to $S$,
 
 Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}} , \sigma^{2(s)} , \lambda^{(s)}\right\}^{S}_{s=1}$.
 
+The function `SV.extended.posterior` below computes posterior distribution of the t-distributed error model with stochastic volatility.
 ```{r SV extended model posterior distribution function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
-SV.extended.posterior <- function(Y, X, S, prior.distribution){
+SV.extended.posterior <- function(Y, X, S, prior.distribution) {
   
   N <- ncol(Y)
   K <- ncol(X)
@@ -1804,7 +1806,6 @@ sign.restrictions=c(1, 1)
 prior.parameters     <- prior.distribution(N, p)
 posterior.parameters <- SV.extended.posterior(Y, X, S, prior.parameters)
 B.restricted         <- RW.identification(N, p, sign.restrictions, posterior.parameters)
-B.restricted
 ```
 
 ```{r RW SV extended model Matrix B0}
@@ -1840,8 +1841,7 @@ knitr::kable(Sigma.posterior.RW.baseline)
 
 ```{r RW SV extended model H posterior}
 #| label: fig-extended-H-posterior 
-#| fig-cap: Plot of $A$ and $\Sigma$ posterior draws -Baseline model
-
+#| fig-cap: Plot of posterior mean of stochastic volatility (t-distributed error model with stochastic volatility)
 sigma2.mean.vec <- apply(posterior.parameters$H.posterior, 1, mean) 
 plot.ts(sigma2.mean.vec, 
         main=expression(paste("Posterior Mean of ",sigma^2)),
@@ -1876,7 +1876,7 @@ mcxs4.shade1 <- rgb(mcxs4.rgb[1],mcxs4.rgb[2],mcxs4.rgb[3], alpha=120, maxColorV
 ```{r identification function}
 #| code-fold: true
 #| code-summary: "See R code"
-identification <- function(N, p, sign.restrictions, posterior.distribution){
+identification <- function(N, p, sign.restrictions, posterior.distribution) {
   
   A.posterior <- posterior.distribution$A.posterior
   Sigma.posterior <- posterior.distribution$Sigma.posterior
@@ -1932,7 +1932,7 @@ identification <- function(N, p, sign.restrictions, posterior.distribution){
 ```
 
 ```{r}
-irf <- function(h, N, p, S, posterior.parameters, B.restricted){
+irf <- function(h, N, p, S, posterior.parameters, B.restricted) {
 
   A.posterior    <- posterior.parameters$A.posterior
   B.posterior    <- B.restricted$B0.inv.store
@@ -1974,7 +1974,7 @@ irf <- function(h, N, p, S, posterior.parameters, B.restricted){
 ```
 
 ```{r}
-irf.plot <- function(N, p, h, S, col, posterior.parameters, B.restricted){
+irf.plot <- function(N, p, h, S, col, posterior.parameters, B.restricted) {
 
   A.posterior    <- posterior.parameters$A.posterior
   B.posterior    <- B.restricted$B0.inv.store
@@ -2098,12 +2098,14 @@ knitr::kable(Sigma.posterior.baseline, format = "html", escape = FALSE)
 
 ```{r baseline model A and Sigma posterior}
 #| label: fig-baseline-posteriors 
-#| fig-cap: Plot of $A$ and $\Sigma$ posterior draws -Baseline model
-par(mfrow=c(2,2),mar=c(2,2,2,2))
-plot(posterior.parameters$A.posterior[2,1,],type='l',col="#6600CC",ylab="",xlab="",main=expression(A[21]), lwd = 0.1)
-plot(posterior.parameters$A.posterior[3,2,],type='l',col="#9900CC",ylab="",xlab="",main=expression(A[32]), lwd = 0.1)
-plot(posterior.parameters$Sigma.posterior[1,1,],type='l',col="#0066CC",ylab="",xlab="",main=expression(Sigma[11]), lwd = 0.1)
-plot(posterior.parameters$Sigma.posterior[2,2,],type='l',col="#0099CC",ylab="",xlab="",main=expression(Sigma[22]), lwd = 0.1)
+#| fig-cap: Trace plot of $A$ and $\Sigma$ posterior draws (Standard model)
+par(mfrow=c(2,2),mar=c(4,3,2,2))
+# A posterior
+plot(posterior.parameters$A.posterior[2,1,], type='l', col="#6600CC", xlab="Number of simulation draws", ylab="", main=expression(A[21]), lwd = 0.1)
+hist(posterior.parameters$A.posterior[2,1,], xlab=expression(A[21]), col ="#8866CC", main ="")
+# Sigma posterior
+plot(posterior.parameters$Sigma.posterior[1,1,], type='l', col="#0066CC", xlab="Number of simulation draws", ylab="", main=expression(Sigma[11]), lwd = 0.1)
+hist(posterior.parameters$Sigma.posterior[2,2,], xlab=expression(Sigma[11]),  ylab="Frequency", col ="#7799CC", main = "")
 ```
 
 Impulse response functions of the baseline model show a positive monetary policy shock on variables. The shaded area represents 68% of the credibility interval. In the short run, GDP decreases gradually, but a year after the shock, GDP decreases at a steeper rate. In the short run, interest rates immediately respond to the shock and normalised after five years of the shock. The consumer price index slightly decreases in the short run. The exchange rate has a positive effect in the short and long run. The stock price has a positive impact in the short run, but it does not have a positive effect in the long run. GDP is the only variable that is statistically different from zero.
@@ -2149,6 +2151,28 @@ sign.restrictions=c(-1, 1, -1, 1, 0, 0)
 prior.parameters     <- prior.distribution(N, p)
 posterior.parameters <- extended.posterior(X, Y, N, S, p, prior.parameters)
 B.restricted         <- identification(N, p, sign.restrictions, posterior.parameters)
+```
+
+```{r extended model Matrix B0 inverse}
+#| label: Extended-Model-B0-inverse
+#| tbl-cap: Mean of $B_0$ inverse Matrix
+knitr::kable(round(apply(B.restricted$B0.inv.store, 1:2, mean), 4))
+```
+
+```{r extended model A posterior}
+#| label: Extended-Model-A-posterior
+#| tbl-cap: Mean of the $A$ posterior
+A.posterior.extended <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.extended) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
+knitr::kable(A.posterior.extended, format = "html", escape = FALSE)
+```
+
+```{r extended model Sigma posterior}
+#| label: Extended-Model-Sigma-posterior
+#| tbl-cap: Mean of the $\Sigma$ posterior
+Sigma.posterior.extended <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.extended) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
+knitr::kable(Sigma.posterior.extended, format = "html", escape = FALSE)
 ```
 
 ```{r extended model posterior irf function}
@@ -2405,6 +2429,8 @@ colnames(Sigma.posterior.baseline) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol"
 knitr::kable(Sigma.posterior.baseline, format = "html", escape = FALSE)
 ```
 
+Impulse response functions of the standard model with stochastic volatility show a positive monetary policy shock on variables. In the short run, GDP and stock price volatility immediately respond to the shock and normalise within a year. No variables are statistically different from zero. Note that the shaded area represents 68% credibility interval.
+
 ```{r SV baseline model irf}
 #| label: fig-IRF-SV-standard
 #| fig-cap: Plot of impulse response functions to monetary policy shock (Standard model with Stochastic Volatility)
@@ -2453,6 +2479,6 @@ B.restricted         <- identification(N, p, sign.restrictions, posterior.parame
 
 # 6. Conclusion
 
-This research examines the impact of monetary policy shocks on stock price volatility in the Australian market. A SVAR model identified using sign restrictions. The findings from four models indicate a small negative influence of positive monetary policy shocks on GDP. The outcomes are promising for the use of Bayesian methods with volatility data, validating the use of heteroskedastic non-normal models for RW data. The study demonstrates the flexibility of Bayesian techniques for adapting to various modeling scenarios, suggesting that further enhancements and explorations of this approach are valuable for future studies.
+This research examines the impact of monetary policy shocks on stock price volatility in the Australian market. A SVAR model identified using sign restrictions. The findings from the first two models indicate a small negative influence of positive monetary policy shocks on GDP. The outcomes are promising for the use of Bayesian methods with volatility data, validating the use of heteroskedastic non-normal models for stock price volatility data. The study demonstrates the flexibility of Bayesian techniques for adapting to various modeling scenarios, suggesting that further enhancements and explorations of this approach are valuable for future studies.
 
 ## References {.unnumbered}
