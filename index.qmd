@@ -1,10 +1,13 @@
 ---
 title: "The Effects of Monetary Policy Shocks on Stock Price Volatility: Evidence from the Australian Economy"
 author: "Inhye Kang"
+date: 2024-06-18
 
 execute:
   echo: false
   
+tbl-cap-location: bottom
+
 bibliography: references.bib
 csl: apa.csl
 ---
@@ -17,7 +20,28 @@ csl: apa.csl
 
 This research project aims to measure the effects of monetary policy shocks on stock price volatility using a Bayesian Structural Vector Autoregressive Model in the Australian economy from 1990 to 2023. The question addressed in this study is: How does an increase in the cash rate target affect stock price volatility in the Australian market?
 
-The behaviour and decisions of stakeholders--including investors, businesses, and financial institutions--in financial markets are primarily affected by stock price volatility. As such, the effect of change in stock prices plays a large role in Australian economy. This study aims to measure the monetary policy shocks on stock price volatility using the Bayesian Structural Vector Autoregression model, focusing on the Australian economy.
+The behaviour and decisions of stakeholders–including investors, businesses, and financial institutions–in financial markets are primarily affected by stock price volatility. As such, the effect of change in stock prices plays a large role in the Australian economy. This study aims to measure the effects of monetary policy shocks on stock price volatility using the Bayesian Structural Vector Autoregression model, focusing on the Australian economy.
+
+```{r global options}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(fig.align="center", results = 'asis')
+options(kableExtra.html.caption.pos = 'bottom')
+```
+
+```{r library}
+library(zoo)
+library(forecast)
+library(urca)
+library(HDInterval)
+library(ggplot2)
+library(gridExtra)
+library(kableExtra)
+```
+
+```{r}
+# Set up the global variable
+S.draws  <- 1000
+```
 
 # 2. Data
 
@@ -30,10 +54,13 @@ The study includes data from the Reserve Bank of Australia (RBA), the Australian
 |    **Stock prices (STP)**: stock prices using the adjusted closing price of the All Ordinaries Index, expressed in AUD
 |    **Stock price volatility (VOL)**: the log of bipower variation calculated using the log of the sum of the
 |    multiplication of consecutive absolute logarithmic returns of stock prices (STP) multiplied by normalisation
-|    factor $\frac{\pi}{2}$ where $log(\frac{\pi}{2} \sum_{t=2}^{T} |r_{t}| \cdot |r_{t-1}|)$
+|    factor $\frac{\pi}{2}$ where $log[log(\frac{\pi}{2} \sum_{t=2}^{T} |r_{t}| \cdot |r_{t-1}|)]$
 
-[<span style="color: #696969;">Table 1](#table1-data-source) shows the details of the data source.
+<br>
+Table 1 shows the data sources.
 ```{r sources}
+#| label: tbl-Data-source
+#| tbl-cap: Data source
 source <- data.frame(
   c('GDP', 'Interest rates', 'Consumer Price Index', 'Exchange rates', 'Stock prices'),  
   c('GGDPCVGDP', 'FIRMMCRTD', 'A2325846C', 'FXRUSD', '^AORD'),
@@ -43,16 +70,6 @@ source <- data.frame(
 colnames(source) <- c("Variable", "Code", "Data source")
 
 knitr::kable(source)
-```
-<div id="table1" style="text-align: center; color: #696969;">
-###### Table 1: Data source
-</div>
-
-```{r global options}
-knitr::opts_chunk$set(echo=FALSE)
-knitr::opts_chunk$set(message=FALSE)
-knitr::opts_chunk$set(warning=FALSE)
-knitr::opts_chunk$set(fig.align="center")
 ```
 
 ```{r download the variables}
@@ -91,7 +108,6 @@ bpv_daily <- (pi/2)*abs_stp[1:(length(abs_stp)-1)]*abs_stp[2:length(abs_stp)]   
 
 ```{r convert to quarterly system}
 # Convert variables into quarterly system
-library(zoo)
 GDP <- aggregate(gdp_tmp, as.yearqtr, function(x) mean(x, na.rm=TRUE))  # real GDP ($ M)
 ICR <- aggregate(icr_tmp, as.yearqtr, function(x) mean(x, na.rm=TRUE))  # cash rate target (%)
 CPI <- aggregate(cpi_tmp, as.yearqtr, function(x) mean(x, na.rm=TRUE)) # consumer price index
@@ -104,12 +120,12 @@ vol <- log(VOL)
 index(vol) <- as.yearqtr(index(vol), format="%Y Q%q")  # log stock price volatility
 ```
 
-GDP, interest rates, consumer price index, exchange rates, stock prices and stock price volatility are plotted in [<span style="color: #696969;">Figure 1](#figure1). GDP exhibits an upward trend except for a trough during COVID-19. Interest rates depict a gradual downward trend; however, from 2022 Q4, there has been a significant increase in interest rates. There is an overall upward trend of stock prices, however, with the exception during the Global Financial Crisis where the stock prices has shown great volatility by increasing and decreasing in large amount.
+GDP, interest rates, consumer price index, exchange rates, stock prices and stock price volatility are plotted in Figure 1. GDP exhibits an upward trend except for a trough during COVID-19. Interest rates depict a gradual downward trend; however, from 2022 Q4, there has been a significant increase in interest rates. There is an overall upward trend of stock prices, however, with the exception of the Global Financial Crisis, where the stock prices have shown great volatility by increasing and decreasing in large amounts. **Stock price volatility is the log of bipower variation.**
 
+<br>
 ```{r time series plots, fig.width=7, fig.height=6.5}
-library(ggplot2)
-library(gridExtra)
-
+#| label: fig-TSplots1
+#| fig-cap: Time series plots of the variables
 plotGDP <- ggplot2::ggplot(data=GDP, aes(x=time(GDP), y=as.vector(GDP))) +
   geom_line(color="darkblue", linewidth=0.5) + 
   scale_y_continuous() + 
@@ -156,12 +172,11 @@ plotvol <- ggplot2::ggplot(data=vol, aes(x=time(vol), y=as.vector(vol))) +
 
 grid.arrange(plotGDP, plotICR, plotCPI, plotEXR, plotSTP, plotvol, nrow=3, ncol=2)
 ```
-<div id="figure1" style="text-align: center; color: #696969;">
-###### Figure 1: Time series plots of the variables
-</div>
 
-[<span style="color: #696969;">Table 2](#table2) demonstrates the descriptive statistics of the variables from 1990 Q1 to 2023 Q4.
+Table 2 demonstrates the descriptive statistics of the variables from 1990 Q1 to 2023 Q4.
 ```{r descriptive statistics}
+#| label: tbl-Descriptive-statistics
+#| tbl-cap: Summary of descriptive statistics
 # Original dataset
 original_variables <- merge(GDP, ICR, CPI, EXR, STP, vol)
 colnames(original_variables) <- c("GDP", "Interest rates", "Consumer price index", "Exchange rates", "Stock prices", "Stock price volatility")
@@ -185,11 +200,8 @@ rownames(summary_df) <- NULL
 
 knitr::kable(summary_df, digits=3)
 ```
-<div id="table2" style="text-align: center; color: #696969;">
-###### Table 2: Summary of descriptive statistics
-</div>
 
-In our model, GDP, consumer price index, stock prices are transformed into a logarithmic scale. Stock price volatility is the log of bipower variation.
+In our model, GDP, consumer price index, and stock prices are transformed into a logarithmic scale.
 ```{r convert to log scale}
 logGDP <- log(GDP)
 logCPI <- log(CPI)
@@ -201,9 +213,10 @@ logSTP <- log(STP)
 variables <- merge(logGDP, ICR, logCPI, EXR, logSTP, vol)
 colnames(variables) <- c("GDP", "Interest rates", "Consumer price index", "Exchange rates", "Stock prices", "Stock price volatility")
 ```
-
-[<span style="color: #696969;">Figure 2](#figure2) shows the variables... stock price volatility is log of log stock price..
+Figure 2 shows the variables... stock price volatility is log of log stock price..
 ```{r log difference plots,  fig.width=7, fig.height=6.5}
+#| label: fig-TSplots2
+#| fig-cap: Time series plots of the data in logarithmic scale
 plotlogGDP <- ggplot2::ggplot(data=logGDP, aes(x=time(logGDP), y=as.vector(logGDP))) +
   geom_line(color="darkblue", linewidth=0.5) + 
   labs(title="GDP", x="", y="") +
@@ -238,10 +251,7 @@ plotlogSTP <- ggplot2::ggplot(data=logSTP, aes(x=time(logSTP), y=as.vector(logST
 
 grid.arrange(plotlogGDP, plotICR, plotlogCPI, plotEXR, plotlogSTP, plotvol, nrow=3, ncol=2)
 ```
-<div id="figure2" style="text-align: center; color: #696969;">
-###### Figure 2: Plot for the data in logarithmic scale
-</div>
-
+<br>
 
 ## 2.1 Diagnostic Tests
 
@@ -249,43 +259,39 @@ grid.arrange(plotlogGDP, plotICR, plotlogCPI, plotEXR, plotlogSTP, plotvol, nrow
 
 The autocorrelation test is used to identify the presence of serial correlation between a variable's current value and its lagged value, indicating that past values influence the current value.
 
-The autocorrelation function (ACF) plots in [<span style="color: #696969;">Figure 3](#figure3) shows that all the variables except for stock price volatility have non-zero autocorrelation for at least 20 lags, implying that only stock price volatility is a stationary series and the other variables are highly persistent.
+The autocorrelation function (ACF) plots in Figure 3 shows that all the variables except for stock price volatility have non-zero autocorrelation for at least 20 lags, implying that only stock price volatility is a stationary series and the other variables are highly persistent.
 
 ```{r ACF, fig.width=7.5, fig.height=7}
-library(forecast)
+#| label: fig-ACF
+#| fig-cap: Plots of autocorrelation functions
 par(mfrow=c(3, 2))
 for (i in 1:ncol(variables)){
   Acf(variables[, i], main=colnames(variables)[i])
 }
 ```
-<div id="figure3" style="text-align: center; color: #696969;">
-###### Figure 3: Plots of autocorrelation functions
-</div>
-
-
-The partial autocorrelation function (PACF) plots in [<span style="color: #696969;">Figure 4](#figure4) shows that the partial autocorrelation for all the variables are significant at the first lag. The partial autocorrelation for exchange rates is also significant at 2.
+The partial autocorrelation function (PACF) plots in Figure 4 shows that the partial autocorrelation for all the variables are significant at the first lag. The partial autocorrelation for exchange rates is also significant at 2.
 
 ```{r PACF, fig.width=7.5, fig.height=7}
+#| label: fig-PACF
+#| fig-cap: Plots of partial autocorrelation functions
 par(mfrow=c(3, 2))
 for (i in 1:ncol(variables)){
   Pacf(variables[, i], main=colnames(variables)[i])
 }
 ```
-<div id="figure4" style="text-align: center; color: #696969;">
-###### Figure 4: Plots of partial autocorrelation functions
-</div>
+
 
 ### 2.1.2 Unit Root Test
 
-#### Augmented Dickey-Fuller Test
+#### **Augmented Dickey-Fuller Test**
 
 The augmented Dickey-Fuller test of the null hypothesis of unit root nonstationarity was performed to test the presence of the unit root.
 
-[<span style="color: #696969;">Table 3](#table3) shows that the null hypothesis was not rejected at the 1% significance level for all the variables but not for stock price volatility, implying that all the variables except for stock price volatility are nonstationary series. However, stock price volatility is the log of bipower variation and took logarithmic scale twice,
+Table 3 shows that the null hypothesis was not rejected at the 1% significance level for all the variables except for stock price volatility, implying that all the variables except for stock price volatility are nonstationary series. Stock price volatility is the log of bipower variation and took logarithmic scale twice.
 
 ```{r ADF on the level}
-library(urca)
-
+#| label: tbl-ADF
+#| tbl-cap: Augmented Dickey-Fuller test results
 adf <- as.data.frame(matrix(nrow=ncol(variables), ncol=4, NA))
 colnames(adf) <- c("Variable", "Test statistic", "Critical value", "Stationarity")
 adf$Variable <- colnames(variables)
@@ -309,12 +315,11 @@ for (i in 1: ncol(variables)){
 
 knitr::kable(adf)
 ```
-<div id="table3" style="text-align: center; color: #696969;">
-###### Table 3: Augmented Dickey-Fuller test results
-</div>
 
-[<span style="color: #696969;">Table 4](#table4) shows that the Augmented Dickey-Fuller test results on the first difference of the variables. We find that all the variables are unit root stationary at the 1% significance level, and conclude that all the variables are integrated of order one, $I(1)$.
+Table 4 shows that the Augmented Dickey-Fuller test results on the first difference of the variables. We find that all the variables are unit root stationary at the 1% significance level, and conclude that all the variables except for stock price volatility are integrated of order one, $I(1)$. Stock price volatility is stationary series and integrated of order zero, $I(0)$.
 ```{r ADF on the first difference}
+#| label: tbl-ADF2
+#| tbl-cap: Augmented Dickey-Fuller test results on the first difference
 diff_variables <- diff(variables)
 
 adf_diff <- as.data.frame(matrix(nrow=ncol(diff_variables), ncol=4, NA))
@@ -340,25 +345,18 @@ for (i in 1: ncol(diff_variables)){
 
 knitr::kable(adf_diff)
 ```
-<div id="table4" style="text-align: center; color: #696969;">
-###### Table 4: Augmented Dickey-Fuller test results on the first difference
-</div>
+
 
 # 3. Methodology
 
 ## 3.1 Model Specification
 
-This study uses a Bayesian Structural vector autoregression (BSVAR) model to measure the dynamic and contemporaneous relationships between variables. The endogenous variables in the model are the following: 
+This study uses a Bayesian Structural vector autoregression model to measure the dynamic and contemporaneous relationships between variables. The endogenous variables in the model are the following: 
 $$
 Y_t= 
-\begin{pmatrix}
-   gdp_t
- \\ICR_t
- \\cpi_t
- \\EXR_t
- \\stp_t
- \\vol_t
-\end{pmatrix}
+\begin{bmatrix}
+   gdp_t \\ICR_t \\cpi_t \\EXR_t \\stp_t \\vol_t
+\end{bmatrix}
 $$ 
 $Y_t$ contains six variables ordered as
 
@@ -371,27 +369,48 @@ $Y_t$ contains six variables ordered as
 
 ### Structural Form
 
-The Structural VAR model can be represented as follows: 
+The Structural form model can be represented as follows: 
 $$
 \begin{gather}
-B_0Y_t = b_0 + \sum_{i=1}^{p} B_iY_{t-i} + u_t \\
-u_t|Y_{t-1} \sim iid(0_N, I_N)
+B_0y_t = b_0 + \sum_{i=1}^{p} B_iy_{t-i} + u_t 
+\\ u_t|Y_{t-1} \sim _{iid} \mathcal{N}(0_N, I_N)
 \end{gather}
 $$ 
 where
 
-|    $Y_t$ is an $N \times 1$ vector of endogenous variables at time $t$,
-|    $B_0$ is an $N \times N$ matrix capturing contemporaneous relationships between variables,
-|    $u_t$ is an $N \times 1$ vector conditionally on $Y_{t-1}$ orthogonal structural shocks,
-|    $N$ is the number of endogeneous variables, and $p$ is the lag length.
+|    $y_t$ is an $N \times 1$ vector of endogenous variables at time $t$,
+|    $B_0$ is an $N \times N$ structural matrix that captures contemporaneous relationships between variables,
+|    $u_t$ is an $N \times 1$ vector conditionally on $Y_{t-1}$ orthogonal or independent structural shocks,
+|    $N$ is the number of endogeneous variables, and $p$ is the lag order.
+
+<br>
+To obtain a model in a form that uses the autoregressive parameters of the VAR model, we can premultiply the SVAR equation by $B_0^{-1}$ and get:
+$$
+\begin{align}
+y_t &= B_0^{-1}b_0 + \sum_{i=1}^{p}B_0^{-1}B_{i}y_{t-i} + B_0^{-1}u_t
+\end{align}
+$$
+It can be rewritten as follows:
+$$
+\begin{align}
+y_t &= \mu_0 + \sum_{i=1}^{p}A_iy_{t-i} + Bu_t \\
+\\ &u_t|Y_{t-1} \sim _{iid} \mathcal{N}(0_N, I_N)
+\end{align}
+$$
+where 
+
+|    $B = B_0^{-1}$ is a contemporaneous effect matrix that captures contemporaneous effects of shocks on variables $y_t$,
+|    $A_i = B_0^{-1}B_i$ is autoregressive slope coefficients, and
+|    $\mu_0 = B_0^{-1}b_0$ is a constant term.
+
 
 ### Reduced Form
 
-Through the transformation, the corresponding Structural VAR model can be represented as the reduced form VAR model as follows: 
+Through the equivalence transformations, the Structural form model can be represented as the reduced form model as follows: 
 $$
 \begin{gather}
-Y_t = \mu_0 + \sum_{i=1}^{p} A_iY_{t-i} + \epsilon_t \\
-\epsilon_t|Y_{t-1} \sim iid(0_N, \Sigma)
+y_t = \mu_0 + \sum_{i=1}^{p} A_iy_{t-i} + \epsilon_t \\
+\epsilon_t|Y_{t-1} \sim _{iid} \mathcal{N}(0_N, \Sigma)
 \end{gather}
 $$ 
 where
@@ -399,13 +418,44 @@ where
 |    $Y_t$ is an $N \times 1$ vector of endogenous variables at time $t$,
 |    $A_i$ is an $N \times N$ matrix of autoregressive slope parameters,
 |    $\mu_0$ is an $N \times 1$ vector of constant terms,
-|    $\epsilon_t$ is an $N \times 1$ vector of the white noise error terms,
-|    $\Sigma$ is an $N \times N$ covariance matrix of error terms $\epsilon_t$, where $\Sigma = B_0^{-1} {B_0^{-1}}'$,
-|    $N$ is the number of endogeneous variables, and $p$ is the lag length.
+|    $\epsilon_t$ is an $N \times 1$ vector of the multivariate white noise error terms, where $\epsilon_t = Bu_t$,
+|    $\Sigma$ is an $N \times N$ covariance matrix of the error terms $\epsilon_t$, where $\Sigma = B_0^{-1} {B_0^{-1}}'$,
+|    $N$ is the number of endogeneous variables, and $p$ is the lag order.
+
+<br>
+The reduced form can be represented in a **matrix form** as follows: 
+$$
+\begin{gather}
+Y = XA + E \\
+\\ E|X \sim \mathcal{MN}_{T \times N}(0_{T \times N},\Sigma_{N \times N},I_T)
+\end{gather} 
+$$ 
+<br>
+$$
+\begin{align}
+Y = \begin{bmatrix} y_{1}' \\y_{2}'  \\. \\. \\. \\y_{T}' \end{bmatrix}_{T \times N} \quad
+A = \begin{bmatrix}\mu_{0}' \\A_{1}' \\.\\.\\.\\A_{p}' \end{bmatrix}_{K \times N} \quad
+x_t =\begin{bmatrix}\ 1 \\y_{t-1} \\.\\.\\.\\y_{t-p} \end{bmatrix}_{K \times 1} \quad
+X = \begin{bmatrix}\ x_{1}' \\x_{2}' \\.\\.\\.\\x_{T}' \end{bmatrix}_{T \times K} \quad
+E = \begin{bmatrix}\ \epsilon _{1}'  \\\epsilon _{2}' \\.\\.\\.\\\epsilon _{T}' \end{bmatrix}_{T \times N}
+\end{align}
+$$
+where
+
+|    $Y$ is a $T \times N$ matrix of endogenous variables at time $T$,
+|    $A$ is a $K \times N$ matrix of autoregressive slope parameters,
+|    $X$ is a $T \times N$ matrix of covariates,
+|    $E$ is a $T \times N$ matrix of the white noise error terms,
+|    $\Sigma$ is an $N \times N$ row-specific covariance matrix of error terms 
+|    $I_T$ is an $T \times T$ identity matrix representing the column-specific covariance matrix of error,
+|    $N$ is the number of endogeneous variables, 
+|    $T$ is the number of time periods,
+|    $p$ is the lag order, and $K = 1 + pN$.
+
 
 ## 3.2 Bayes' theorem
 
-For parameter estimation, the **Bayes' theorem** is used to derive the joint posterior distribution.
+For parameter estimation, the Bayes' theorem is used to derive the joint posterior distribution.
 
 The joint posterior distribution of $A$ and $\Sigma$ can be estimated as follows:
 $$
@@ -414,28 +464,154 @@ $$
 \\ &\propto \underbrace{L(A,\Sigma|Y,X)}_{\text{Likelihood function}} \cdot \underbrace{p(A|\Sigma) \cdot p(\Sigma)}_{\text{Prior}}
 \end{align}
 $$ 
+
 ## 3.3 Minnesota Prior
 
-Using **Minnesota prior**, we set the prior mean of $\underline{A}$ and $\underline{V}$ as the following:
+The Minnesota prior is a type of prior distribution that assumes that the variables are assumed to follow a random walk process. It imposes restrictions on the coefficients of the model by shrinking the coefficients on the lag of other variables more aggressively compared to the coefficients of their own lags, reflecting that a variable's past values are more important predictors of its current value. The impact of past values on future values diminishes as lag *p* increases. 
 
+Using the Minnesota prior, we set the **prior mean** **$\underline{A}$** as the following:
 $$
 \begin{align}
 \underline{A} = \begin{bmatrix} \mathbf{0}_{N \times 1} \\ I_N \\ \mathbf{0}_{N \times (p-1)N} \end{bmatrix}
 \end{align}
 $$
-
+where the prior covariance matrix is
 $$
 \begin{align}
-\underline{A} &= \left[ \mathbf{0}_{N \times 1} \quad I_N \quad \mathbf{0}_{N \times (p-1)N} \right]'
-\\ Var[vec(A)] &= \Sigma \otimes  \underline{V} 
-\\ \underline{V} &= \text{diag}([\kappa_2 \quad \kappa_1 (\mathbf{p}^{-2} \otimes \imath'_N)]) 
-\\ \mathbf{p} &= [1,2, ..., p], \qquad \imath_N = [1,...,1]
+Var[vec(A)] &= \Sigma \otimes  \underline{V} 
+\end{align}
+$$
+**Column-specific prior covariance of** $A$ is defined as the following:
+$$
+\begin{align}
+\underline{V} &= \text{diag}([\kappa_2 \quad \kappa_1 (\mathbf{p}^{-2} \otimes \imath'_N)]) 
+\end{align}
+$$
+where
+$$
+\begin{align}
+\mathbf{p} = [1,2, ..., p] 
+\\ \imath_N = [1,...,1]
 \end{align}
 $$
 
-|    $\kappa_1$ is overall shrinkage level of autoregressive slopes, where common value is $0.02^2$
-|    $\kappa_2$ is overall shrinkage of the constant term
+|    $\kappa_1$ is overall shrinkage level of autoregressive slopes, and
+|    $\kappa_2$ is overall shrinkage of the constant term.
 
+<br>
+Two shrinkage hyperparameters $\kappa_1$ and $\kappa_2$ controls the level of shrinkage/dispersion of the prior distribution around the prior mean $\underline{A}$.
+
+
+## 3.4 Identification
+
+**Sign restrictions** are imposed to obtain the identification of the system, namely orthogonal shocks $u_t$ and matrix $B_0$.
+$$
+\begin{align}
+y_t &= \mu_0 + \sum_{i=1}^{p}A_iy_{t-i} + Bu_t \\
+\\ &u_t|Y_{t-1} \sim _{iid} \mathcal{N}(0_N, I_N)
+\end{align}
+$$
+$B$ = $B_0^{-1}$ is a contemporaneous effect matrix that captures contemporaneous effects of shocks on variables $y_t$
+
+For each sample draws from the posterior distribution of $A$, $\Sigma$ from the reduced form, the contemporaneous effects matrix is derived as: 
+$$
+\tilde{B}=\tilde{B}^{-1}_0=\text{chol}(\Sigma)
+$$
+Contemporaneous effects matrix $B$ is identified by searching for an appropriate rotation matrix $Q$ such that prescribed sign restrictions hold:
+$$
+B = Q\tilde{B}
+$$
+such that:
+
+For $n$ = 1, ... , $N$ check if
+$$
+\textbf{R}_nf(\tilde{B}_0,\tilde{B}_+)e_n\ > \textbf{0}_{R \times 1}
+$$ 
+f (B+, B0) – $R \times N$ matrix of functions of parameters to be
+restricted,
+f (B+, B0) = $B_0'$ – restrictions on contemporaneous relationships f (B+, B0) = B 1 0$B_1'$
+– restrictions on contemporaneous effects
+
+$$
+\begin{gather}
+f(\tilde{B}_0,\tilde{B}_+) = 
+\begin{bmatrix}
+\Theta_0 \space \Theta_1 
+\end{bmatrix}
+= B =  \tilde{B}^{-1}_0
+\end{gather}
+$$
+
+Table 5 shows the sign restrictions for the positive monetary policy shock. 
+```{r sign restrictions table}
+#| label: tbl-Sign-restrictions
+#| tbl-cap: Sign restrictions
+sign.restrictions.list <- data.frame(" " = "Monetary Policy Shock", "gdp" = "-", "ICR" = "+", "cpi" = "-", "EXR" = "+", "stp" = "", "vol" = "", check.names = FALSE)
+
+knitr::kable(sign.restrictions.list)
+```
+
+The following sign restrictions are imposed on on the variable interest rates. 
+$$
+f(B_0,B_+)=\Theta_0=B=
+\begin{bmatrix}
+* & - & * & * & * & * \\
+* & + & * & * & * & * \\
+* & - & * & * & * & * \\
+* & + & * & * & * & * \\
+* & * & * & * & * & * \\
+* & * & * & * & * & * \\
+\end{bmatrix}
+$$
+The restriction matrix R is as follows:
+$$
+\textbf{R}_2=\begin{bmatrix}
+-1 & 0 & 0 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 & 0 & 0 \\
+0 & 0 & -1 & 0 & 0 & 0 \\
+0 & 0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 \\
+\end{bmatrix}
+$$
+
+
+## 3.5 Impulse Response Function
+
+Impulse response functions to orthogonal shocks capture the dynamic causal effects of an exogenous shock on the endogenous variables in the model. To obtain the impulse response function from the reduced form $VAR(p)$ model, a stationary Vector $VAR(p)$ process should be rewritted in $VMA(\infty)$ form. 
+The $VAR(1)$ representation of the reduced form $VAR(p)$ model is the following:
+$$
+\begin{align}
+Y_t &= \textbf{A}Y_{t-1}+E_t 
+\\ &= E_t+\textbf{A}E_{t-1}+\textbf{A}^2E_{t-2}+ ...
+\end{align}
+$$ 
+Using the $J$ matrix, transform a $VAR(1)$ representation back to a $VAR(p)$ representation.
+$$
+J=\big[I_N\quad 0_{N\times N(p-1)}\big]
+$$
+Then,
+$$
+\begin{align}
+y_t &= JY_t 
+\\ &=JE_t+J\textbf{A}J'JE_{t-1}+J\textbf{A}^2J'JE_{t-2}+... 
+\\ &=\epsilon_t+J\textbf{A}J'\varepsilon_{t-1}+J\textbf{A}^2J'\varepsilon_{t-2}+... 
+\end{align}
+$$
+Substitute $\epsilon_t$ to $Bu_t$:
+$$
+\begin{align}
+y_t &=Bu_t+J\textbf{A}J'Bu_{t-1}+J\textbf{A}^2J'Bu_{t-2}+...
+\\ &=\Theta_0u_t+\Theta_1u_{t-1}+\Theta_2u_{t-2}+...
+\end{align}
+$$ 
+Differenciate to obtain matrices $\Theta_i$:
+$$
+\begin{align}
+\frac{\partial y_{t+i}}{\partial u_t} = \Theta_i = J\textbf{A}^iJ'B
+\end{align}
+$$ 
+where matrices $\Theta_i$ identify the impulse response functions, which represent responses of all variables in $Y_t$ to orthogonal shocks, $i$ periods after shock's occurence.
 
 
 # 4. Estimation Framework
@@ -444,37 +620,13 @@ $$
 
 ### 4.1.1 Model Specification
 
-The reduced form can be represented in a matrix form as follows: 
+The reduced form representation in a matrix form is as follows: 
 $$
 \begin{gather}
 Y = XA + E \\
-\\ E|X \sim MN_{T \times N}(0_{T \times N},\Sigma_{N \times N},I_T) \\ 
+\\ E|X \sim \mathcal{MN}_{T \times N}(0_{T \times N},\Sigma,I_T) \\ 
 \end{gather} 
 $$ 
-$$$$
-
-$$
-\begin{aligned}
-Y = \begin{bmatrix} y_{1}' \\y_{2}'  \\. \\. \\. \\y_{T}' \end{bmatrix}_{T \times N} \quad
-A = \begin{bmatrix}\mu_{0}' \\A_{1}' \\.\\.\\.\\A_{p}' \end{bmatrix}_{K \times N} \quad
-x_t =\begin{bmatrix}\ 1 \\y_{t-1} \\.\\.\\.\\y_{t-p} \end{bmatrix}_{K \times 1} \quad
-X = \begin{bmatrix}\ x_{1}' \\x_{2}' \\.\\.\\.\\x_{T}' \end{bmatrix}_{T \times K} \quad
-E = \begin{bmatrix}\ \epsilon _{1}'  \\\epsilon _{2}' \\.\\.\\.\\\epsilon _{T}' \end{bmatrix}_{T \times N}
-\end{aligned}
-$$
-
-where
-
-|    $Y$ is a $T \times N$ matrix of endogenous variables,
-|    $A$ is a $K \times N$ matrix of autoregressive slope parameters,
-|    $X$ is a $T \times N$ matrix of covariates,
-|    $E$ is a $T \times N$ matrix of the white noise error terms,
-|    $\Sigma$ is an $N \times N$ row-specific covariance matrix of error terms 
-|    $I_T$ is an $T \times T$ identity matrix representing the column-specific covariance matrix of error, and
-|    $N$ is the number of endogeneous variables, 
-|    $T$ is the number of time periods,
-|    $p$ is the lag length, and
-|    $K = 1 + pN$.
 
 ### 4.1.2 Estimation Procedure
 
@@ -485,13 +637,13 @@ $$
 \\ &\propto \underbrace{L(A,\Sigma|Y,X)}_{\text{Likelihood function}} \cdot \underbrace{p(A|\Sigma) \cdot p(\Sigma)}_{\text{Prior}}
 \end{align}
 $$ 
-This implies the following form for the kernel of the **likelihood function**: 
+The model specification implies the following form for the kernel of the **likelihood function**: 
 $$
 \begin{align}
-L(A,\Sigma|Y,X) &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \exp \left\{-\frac{1}{2} tr \left[ \Sigma^{-1}(Y-XA)'(Y-XA) \right] \right\} 
+L(A,\Sigma|Y,X) &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1}(Y-XA)'(Y-XA) \right] \right\} 
 \\ &\propto \det(\Sigma)^{-\frac{T}{2}} 
-\\ &\times \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1}(A-\hat{A})'X'X(A-\hat{A}) \right] \right\} 
-\\ &\times \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1}(Y-X \hat{A})'(Y-X \hat{A}) \right] \right\}
+\\ &\quad\times \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1}(A-\hat{A})'X'X(A-\hat{A}) \right] \right\} 
+\\ &\quad\times \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1}(Y-X \hat{A})'(Y-X \hat{A}) \right] \right\}
 \end{align}
 $$
 where 
@@ -507,8 +659,8 @@ The **natural-conjugate prior distribution** where $A$ is matrix normal and $\Si
 $$
 \begin{gather}
 p(A,\Sigma) = p(A|\Sigma) \cdot p(\Sigma) \\
-\\ A|\Sigma \sim MN_{K \times N}(\underline{A},\Sigma,\underline{V}) \\
-\\ \Sigma \sim IW_N(\underline{S},\underline{\nu})
+\\ A|\Sigma \sim \mathcal{MN}_{K \times N}(\underline{A},\Sigma,\underline{V})
+\\ \Sigma \sim \mathcal{IW}_N(\underline{S},\underline{\nu})
 \end{gather}
 $$
 This implies the following form for the kernel of the natural-conjugate prior distribution: 
@@ -516,42 +668,41 @@ $$
 \begin{align}
 p(A,\Sigma) &= p(A|\Sigma) \cdot p(\Sigma) \\
 \\ &\propto \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} 
-\\ &\times \exp \left\{-\frac{1}{2}tr \left[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A}) \right] \right\} 
-\\ &\times \exp \left\{-\frac{1}{2}tr \left[\Sigma^{-1}\underline{S} \right] \right\}
+\\ &\quad\times \exp \left\{-\frac{1}{2}tr \left[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A}) \right] \right\} 
+\\ &\quad\times \exp \left\{-\frac{1}{2}tr \left[\Sigma^{-1}\underline{S} \right] \right\}
 \end{align}
 $$
 
-The **posterior distribution** is given by the product of the likelihood and the priors.
+The **conditional posterior distribution** is given by the product of the likelihood function and the prior distribution.
 $$
 \begin{align}
 p(A,\Sigma|Y,X) &\propto L(A,\Sigma|Y,X) \cdot p(A,\Sigma) \\
 \\ &\propto L(A,\Sigma|Y,X) \cdot p(A|\Sigma) \cdot p(\Sigma) \\
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \exp \left\{-\frac{1}{2} tr \left[ \Sigma^{-1}(Y-XA)'(Y-XA) \right] \right\} 
+\\ &\quad\times \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}\underline{S}] \right\} \\
 \\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \exp \left\{-\frac{1}{2} tr \left[ \Sigma^{-1}(A-\hat{A})'X'X(A-\hat{A}) \right] \right\} \cdot \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1}(Y-X \hat{A})'(Y-X \hat{A}) \right] \right\} 
-\\ &\times \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}\underline{S}] \right\} \\
+\\ &\quad\times \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}\underline{S}] \right\} \\
 \\ &\propto \det{(\Sigma)}^{-\frac{T+N+K+\underline{\nu}+1}{2}} 
-\\ &\times \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1} \left[(A-\hat{A})'X'X(A-\hat{A})+(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})+(Y-X\hat{A})'(Y-X\hat{A})+\underline{S} \right] \right] \right\} \\
+\\ &\quad\times \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1} \left[(A-\hat{A})'X'X(A-\hat{A})+(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})+(Y-X\hat{A})'(Y-X\hat{A})+\underline{S} \right] \right] \right\} \\
 \\ &\propto \det{(\Sigma)}^{-\frac{T+N+K+\underline{\nu}+1}{2}} 
-\\ &\times \exp \left\{ -\frac{1}{2} tr \left[\Sigma^{-1}\left[(A-\overline{A})'\overline{V}^{-1} (A-\overline{A})+\underline{S}+Y'Y+\underline{A}'\underline{V}^{-1}\underline{A}-\overline{A}'\overline{V}^{-1} \overline{A} \right] \right] \right\}
+\\ &\quad\times \exp \left\{ -\frac{1}{2} tr \left[\Sigma^{-1}\left[(A-\overline{A})'\overline{V}^{-1} (A-\overline{A})+\underline{S}+Y'Y+\underline{A}'\underline{V}^{-1}\underline{A}-\overline{A}'\overline{V}^{-1} \overline{A} \right] \right] \right\}
 \end{align}
 $$ 
-
-Combining the terms and completing the squares for the terms within the square brackets yields the following the joint posterior distributions for $A$ and $\Sigma$:
+Combining the terms yields the following the joint posterior distributions for $A$ and $\Sigma$:
 $$
 \begin{gather}
-p(A,\Sigma|Y,X) = p(A|Y,X,\Sigma) \cdot p(\Sigma|Y,X) = MNIW_{K \times N}(\overline{A}, \overline{V}, \overline{S}, \overline{\nu})
-\\
-\\ p(A|Y,X,\Sigma) = MN_{K \times N}(\overline{A}, \Sigma, \overline{V}) \\
-\\ p(\Sigma|Y,X) = IW_N(\overline{S},\overline{\nu}) \\
+p(A,\Sigma|Y,X) = p(A|Y,X,\Sigma) \cdot p(\Sigma|Y,X) = \mathcal{MNIW}_{K \times N}(\overline{A}, \overline{V}, \overline{S}, \overline{\nu}) \\
+\\ p(A|Y,X,\Sigma) = \mathcal{MN}_{K \times N}(\overline{A}, \Sigma, \overline{V}) \\
+\\ p(\Sigma|Y,X) = \mathcal{IW}_N(\overline{S},\overline{\nu}) \\
 \end{gather}
 $$ 
-
-where the parameter of the joint posterior distribution are the following: 
+where the parameters of the joint posterior distribution are the following: 
 $$
 \begin{align}
 \overline{V} &= (X'X + \underline{V}^{-1})^{-1} 
 \\ \overline{A} &= \overline{V}(X'Y + \underline{V}^{-1}\underline{A}) 
-\\ \overline{\nu} &= T + \underline{\nu} 
 \\ \overline{S} &= \underline{S} + Y'Y + \underline{A}'\underline{V}^{-1}\underline{A} - \overline{A}'\overline{V}^{-1}\overline{A}
+\\ \overline{\nu} &= T + \underline{\nu} 
 \end{align}
 $$
 
@@ -559,13 +710,28 @@ $$
 
 To check the validity of the algorithms, two independent bi-variate Gaussian random walk processes with 1,000 observations were generated to simulate unit-root non-stationary macroeconomic variables.
 
+The bi-variate Gaussian random walk process is represented as follows:
+$$
+y_t = 
+\begin{bmatrix} y_{t,1} \\ y_{t,2} \end{bmatrix} 
+= \begin{bmatrix} y_{t-1,1} \\ y_{t-1,2} \end{bmatrix} 
++ \begin{bmatrix} \epsilon_{t,1} \\ \epsilon_{t,2} \end{bmatrix}
+$$
+where both $\epsilon_{t,1}$ and $\epsilon_{t,2}$ have mean of zero and variance of one.
+$$
+\begin{align}
+\epsilon_{t,1} \sim \mathcal{N}(0,1)
+\\ \epsilon_{t,2} \sim \mathcal{N}(0,1)
+\end{align}
+$$
+
 ```{r random walks}
 set.seed(2024)
 RW1 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
 RW2 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
 RW  <- cbind(RW1, RW2)
 ```
-
+The plot below shows the bi-variate Gaussian random walk process.
 ```{r random walks plot, fig.width=5, fig.height=3.5}
 ggplot2::ggplot() +
   geom_line(aes(x=time(RW1), y=RW1), size=1, color="orange", linewidth=0.5) +
@@ -575,51 +741,62 @@ ggplot2::ggplot() +
   theme(legend.position="none", plot.title=element_text(hjust=0.5))
 ```
 
-```{r, random walk baseline model posterior distribution, echo=TRUE}
+#### **Gibbs Sampler**
+Using the parameter of the joint posterior distribution $\overline{A}$, $\overline{V}$,$\overline{S}$, $\overline{\nu}$ computed in the section 4.1.2, we obtain a sample of $S$ draws from the posterior distribution.
+
+At each iteration $s$ where $s$ goes from 1 to $S$,
+
+1. Draw $\Sigma^{(s)} \sim P(\Sigma|Y,X)$ from the $\mathcal{IW}_N(\overline{S},\overline{\nu})$ distribution.
+2. Draw $A^{(s)} \sim P(A|Y,X,\Sigma^{(s)})$ from the $\mathcal{MN}_{K \times N}(\overline{A},\Sigma^{(s)}, \overline{V})$ distribution using the draw $\Sigma^{(s)}$.
+
+Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}}\right\}^{S}_{s=1}$.
+
+The function below computes prior distribution.
+```{r prior distribution function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
-
-RW.baseline <- function(data, sign.restrictions, p, S){
+prior.distribution <- function (N, p) {
   
-  # Define the lag order and the number of iterations
+  # Prior distribution
   ############################################################
-  # p                       # number of lags
-  # S                       # number of posterior draws
-  
-  # Create Y and X matrices
-  ############################################################
-  Y           <- data[(p+1):nrow(data), ]
-  X           <- matrix(1, nrow(Y), 1)
-  for (i in 1:p){
-    X         <- cbind(X, data[(p+1):nrow(data)-i, ])
-    }
-
-  T           <- nrow(Y)    # number of time periods
-  N           <- ncol(Y)    # number of variables
-  K           <- 1+p*N
-  
-  # Convert it into a matrix form
-  Y           <- as.matrix(Y)
-  X           <- as.matrix(X)
-  
   # Calculate the MLE
-  ############################################################
+  # ----------------------------------------------------------
   A.hat       <- solve(t(X)%*%X)%*%t(X)%*%Y                
   Sigma.hat   <- t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)  
   
   # Specify the prior distribution parameters
-  ############################################################
-  kappa.1     <- 0.02^2
+  # ----------------------------------------------------------
+  kappa.1     <- 1
   kappa.2     <- 100
   
   A.prior     <- matrix(0, nrow(A.hat), ncol(A.hat))
   A.prior[2:(N+1),] <- diag(N)
   V.prior     <- diag(c(kappa.2, kappa.1*((1:p)^(-2))%x%rep(1,N)))
   S.prior     <- diag(diag(Sigma.hat))
-  nu.prior    <- N+1
+  nu.prior    <- N+1  
+
+  return (list(A.prior = A.prior,
+               V.prior = V.prior,
+               S.prior = S.prior,
+               nu.prior = nu.prior))
+}
+```
+
+The function below computes posterior distribution.
+```{r baseline model posterior distribution function, echo=TRUE}
+#| code-fold: true
+#| code-summary: "See R code"
+baseline.posterior <- function (X, Y, N, p, S, prior.distribution) {
   
-  # Specify the matrix normal-inverse Wishart posterior parameters
+  A.prior  <- prior.distribution$A.prior
+  V.prior  <- prior.distribution$V.prior
+  S.prior  <- prior.distribution$S.prior
+  nu.prior <- prior.distribution$nu.prior
+
+  # Posterior distribution
   ############################################################
+  # Specify the matrix normal-inverse Wishart posterior parameters
+  # ----------------------------------------------------------
   V.bar.inv   <- t(X)%*%X + diag(1/diag(V.prior))
   V.bar       <- solve(V.bar.inv)
   A.bar       <- V.bar%*%(t(X)%*%Y + diag(1/diag(V.prior))%*%A.prior)
@@ -628,21 +805,20 @@ RW.baseline <- function(data, sign.restrictions, p, S){
   S.bar.inv   <- solve(S.bar)
   
   # Draw Posterior distribution
-  ############################################################
+  # ----------------------------------------------------------
   ## Draw from the Reduced Form
   ### Draw Sigma from the inverse Wishart distribution
   Sigma.posterior   <- rWishart(S, df=nu.bar, Sigma=S.bar.inv)
-  Sigma.posterior   <- apply(Sigma.posterior, 3, solve)            
-  Sigma.posterior   <- array(Sigma.posterior, c(N,N,S))
-  
-  ### Draw A from matrix-variate normal distribution
-  A.posterior       <- array(rnorm(prod(c(dim(A.bar),S))),c(dim(A.bar),S)) 
+  Sigma.posterior   <- apply(Sigma.posterior, 3, solve)  
   
   # Initialise arrays to store posterior draws
+  Sigma.posterior   <- array(Sigma.posterior, c(N,N,S))
+  A.posterior       <- array(rnorm(prod(c(dim(A.bar), S))), c(dim(A.bar), S)) 
   B0.posterior      <- array(NA, c(N,N,S))
   B1.posterior      <- array(NA, c(N,K,S))
   
   for (s in 1:S){
+    
     ## Draw from the Structural Form
     ### Draw B0
     cholSigma.s        <- chol(Sigma.posterior[,,s])
@@ -653,17 +829,37 @@ RW.baseline <- function(data, sign.restrictions, p, S){
     ### Draw Bplus
     B1.posterior[,,s]  <- B0.posterior[,,s]%*%t(A.posterior[,,s])
     }
+    
+  return(list(B0.posterior = B0.posterior, 
+              B1.posterior = B1.posterior,
+              A.posterior = A.posterior, 
+              Sigma.posterior = Sigma.posterior))
+}
+```
+
+The function below imposes sign restrictions.
+```{r RW baseline model identification function, echo=TRUE}
+#| code-fold: true
+#| code-summary: "See R code"
+RW.identification <- function (N, p, sign.restrictions, posterior.distribution){
+  
+  A.posterior <- posterior.distribution$A.posterior
+  Sigma.posterior <- posterior.distribution$Sigma.posterior
+  B0.posterior <- posterior.distribution$B0.posterior
+  B1.posterior <- posterior.distribution$B1.posterior
+  
+  S <- dim(A.posterior)[3]
   
   # Identification via sign restrictions
   ############################################################
-  # Generate corresponding R matrix
-  R <- diag(sign.restrictions)
-  
   # Initialise arrays to store Q identified estimates
   i.vec <- c()
   Q.store      <- array(NA, c(N,N,S))
   B0.store     <- array(NA, c(N,N,S))
   B1.store     <- array(NA, c(N,K,S))
+  
+  # Generate corresponding R matrix
+  R <- diag(sign.restrictions)
   
   for (s in 1:S){
     B0.tilde      <- B0.posterior[,,s]
@@ -696,106 +892,160 @@ RW.baseline <- function(data, sign.restrictions, p, S){
   B1.mean     <- apply(B1.store, 1:2, mean)
   
   return(list(B0.mean = B0.mean, 
-              B1.mean = B1.mean, 
-              A.posterior = A.posterior, 
-              Sigma.posterior = Sigma.posterior))
+              B1.mean = B1.mean))
   }
 ```
 
-```{r random walk baseline model result}
-RW.baseline <- RW.baseline(data=RW, sign.restrictions=c(1, 1), p=1, S=1000)
+```{r RW baseline model data}
+set.seed(2024)
+RW1 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
+RW2 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
+RW  <- cbind(RW1, RW2)
+
+# Define the lag order and the number of iterations
+# ----------------------------------------------------------
+p           <- 1          # number of lags
+S           <- 1000       # number of posterior draws
+
+# Create Y and X matrices
+# ----------------------------------------------------------
+Y           <- RW[(p+1):nrow(RW), ]
+X           <- matrix(1, nrow(Y), 1)
+for (i in 1:p){
+  X         <- cbind(X, RW[(p+1):nrow(RW)-i, ])
+}
+T           <- nrow(Y)    # number of time periods
+N           <- ncol(Y)    # number of variables
+K           <- 1+p*N
+
+# Convert it into a matrix form
+Y           <- as.matrix(Y)
+X           <- as.matrix(X)
+
+# Define sign restrictions
+# ----------------------------------------------------------
+sign.restrictions=c(1, 1)
 ```
 
-The results show that 
+```{r random walk baseline model posterior distribution}
+prior.parameters     <- prior.distribution(N, p)
+posterior.parameters <- baseline.posterior(X, Y, N, p, S, prior.parameters)
+B.restricted         <- RW.identification(N, p, sign.restrictions, posterior.parameters)
+```
 
+The results below show the mean of the matrices $B_0$ and $B_+$.
 ```{r random walk baseline model Matrix B0}
-#| label: table - RW Baseline B0
-#| tbl-cap: Mean of the Matrix B[0]
-knitr::kable(round(apply(RW.baseline$B0.mean, 1:2, mean), 4))
+#| label: RW-baseline-B0
+#| tbl-cap: Mean of the $B_0$ Matrix
+knitr::kable(round(apply(B.restricted$B0.mean, 1:2, mean), 4))
 ```
 
 ```{r random walk baseline model Matrix B+}
-#| label: table - RW Baseline B+
-#| tbl-cap: Mean of the Matrix B[+]
-knitr::kable(round(apply(RW.baseline$B1.mean, 1:2, mean), 4))
+#| label: RW-baseline-B+
+#| tbl-cap: Mean of the $B_+$ Matrix
+knitr::kable(round(apply(B.restricted$B1.mean, 1:2, mean), 4))
 ```
 
+The results below show the mean of the matrices $A$ and $\Sigma$.
 ```{r random walk baseline model A posterior}
-#| label: table - RW Baseline A posterior
-#| tbl-cap: Mean of the A posterior
-knitr::kable(round(apply(RW.baseline$A.posterior, 1:2, mean), 4))
+#| label: RW-baseline-A-posterior
+#| tbl-cap: Mean of the $A$ posterior
+A.posterior.RW.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.RW.baseline) <- c("y1", "y2")
+rownames(A.posterior.RW.baseline) <- c("constant", "lag of y1", "lag of y2")
+knitr::kable(A.posterior.RW.baseline, format = "html", escape = FALSE)
 ```
 
 ```{r random walk baseline model Sigma posterior}
-#| label: table - RW Baseline Sigma posterior
-#| tbl-cap: Mean of the Sigma posterior
-knitr::kable(round(apply(RW.baseline$Sigma.posterior, 1:2, mean), 4))
+#| label: RW-baseline-Sigma-posterior
+#| tbl-cap: Mean of the $\Sigma$ posterior
+Sigma.posterior.RW.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
+rownames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
+knitr::kable(Sigma.posterior.RW.baseline)
 ```
 
-## 4.2 Bayesian SVAR Model with *t*-distributed Innovations
+
+## 4.2 Bayesian SVAR Model with *t*-distributed Errors
 
 ### 4.2.1 Model Specification
 
-Stock price volatility
+To relax the normality assumption in the error terms, we assumed error terms to be *t*-distributed. The stock price is responsive to unanticipated events, which causes fluctuation in price and volatility. The large gains and losses observed in stocks can be addressed in leptokurtic distribution, and *t*-distribution is a good candidate for our model of stock price volatility. 
 
-$$
-\begin{align}
-E_T &\sim t_N(0, \Sigma, \nu) 
-\end{align}
-$$
-Then, the reduced form can be represented in a matrix form as follows:
+The reduced form representation in a matrix form is as follows:
 $$
 \begin{gather}
 Y = XA + E \\
-\\ E|X, \lambda \sim MN_{T \times N}(0_{T \times N},\Sigma_{N \times N},\lambda I_T)
+\\ E|X, \lambda \sim \mathcal{MN}_{T \times N}(0_{T \times N},\Sigma,\lambda I_T)
 \end{gather} 
 $$ 
-where lambda is inverse gamma 2 distributed with shape and ..
+where the column-specific covariance matrix of error terms is set to be $\lambda I_T$. 
 
+The parameter lambda is inverse gamma 2 distributed with scale parameter $s_{\lambda}$ and shape parameter $\nu_{\lambda}$. We assume fixed numbers for $s_{\lambda}$ and $\nu_{\lambda}$ in this study.
 $$
-\lambda \sim IG2(s_{\lambda}, \nu_{\lambda})
+\lambda \sim \mathcal{IG}2(s_{\lambda}, \nu_{\lambda})
 $$
-
-
-
+Then it follows multivariate *t*-distribution:
+$$
+\begin{gather}
+E|X \sim t_N(0, \Sigma,\nu)
+\end{gather} 
+$$
 
 ### 4.2.2 Estimation Procedure
 
 Using the **Bayes' theorem**, the joint posterior distribution for $A$ and $\Sigma$ is the following:
 $$
 \begin{align}
-\underbrace{p(A,\Sigma|Y,X)}_{\text{Posterior}} &\propto L(A,\Sigma|Y,X) \cdot p(A,\Sigma) 
-\\ &\propto \underbrace{L(A,\Sigma|Y,X)}_{\text{Likelihood function}} \cdot \underbrace{p(A|\Sigma) \cdot p(\Sigma)}_{\text{Prior}}
+\underbrace{p(A,\Sigma|Y,X,\lambda)}_{\text{Posterior}} &\propto L(A,\Sigma|Y,X,\lambda) \cdot p(A,\Sigma) 
+\\ &\propto \underbrace{L(A,\Sigma|Y,X,\lambda)}_{\text{Likelihood function}} \cdot \underbrace{p(A|\Sigma) \cdot p(\Sigma)}_{\text{Prior}}
 \end{align}
 $$ 
-
 The kernel of the **likelihood function** follows as:
 $$
 \begin{align}
 L(A,\Sigma|Y,X,\lambda) &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\lambda I_T)^{-\frac{N}{2}} \cdot \exp \left\{-\frac{1}{2} \text{tr} \left[\Sigma^{-1}(Y-XA)'(\lambda I_T)^{-1}(Y-XA) \right] \right\}
 \end{align}
 $$
-The **conditional posterior distribution of** $A$ **and** $\Sigma$:
+The **natural-conjugate prior distribution** where $A$ follows matrix normal, $\Sigma$ follows inverse Wishart and $\lambda$ follows inverse gamma 2 distribution, have the same form as the joint posterior distribution for $A$, $\Sigma$, and $\lambda$.
+$$
+\begin{gather}
+p(A,\Sigma, \lambda) = p(A|\Sigma) \cdot p(\Sigma) \cdot p(\lambda)\\
+\\ A|\Sigma \sim \mathcal{MN}_{K \times N}(\underline{A},\Sigma,\underline{V}) 
+\\ \Sigma \sim \mathcal{IW}_N(\underline{S},\underline{\nu}) 
+\\ \lambda \sim \mathcal{IG}2(\underline{s_{\lambda}}, \underline{\nu_{\lambda}})
+\end{gather}
+$$
+This implies the following form for the kernel of the natural-conjugate prior distribution:
+$$
+\begin{align}
+p(A,\Sigma, \lambda) &= p(A|\Sigma) \cdot p(\Sigma) \cdot p(\lambda) \\
+\\ &\propto \det(\Sigma)^{-\frac{N+k+\underline{\nu}+1}{2}} \cdot \exp \left\{-\frac{1}{2}tr[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} \cdot \exp \left\{ -\frac{1}{2}tr[\Sigma^{-1}\underline{S}] \right\} \\
+&\quad\times \lambda^{-\frac{\underline{\nu_{\lambda}}+2}{2}} \cdot 
+\exp \left\{-\frac{1}{2}\frac{\underline{s_{\lambda}}}{\lambda} \right\}
+\end{align}
+$$
+The **conditional posterior distribution of** $A$ **and** $\Sigma$ is given by the product of the likelihood function and the prior distribution:
 $$
 \begin{align}
 p(A,\Sigma|Y,X,\lambda) &\propto L(A,\Sigma|Y,X,\lambda) \cdot p(A,\Sigma) \\
-\\ &\propto L(A,\Sigma|Y,X,\lambda) \cdot p(A|\Sigma,\lambda) \cdot p(\Sigma|\lambda) \\
+\\ &\propto L(A,\Sigma|Y,X,\lambda) \cdot p(A|\Sigma) \cdot p(\Sigma) \\
 \\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\lambda I_T)^{-\frac{N}{2}} \cdot \exp \left\{-\frac{1}{2} tr[\Sigma^{-1} (Y-XA)' (\lambda I_T)^{-1} (Y-XA) ] \right\}
-\\ &\times 
+\\ &\quad\times 
 \det(\Sigma)^{-\frac{N+k+\underline{\nu}+1}{2}} \cdot \exp \left\{-\frac{1}{2}tr[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} \cdot \exp \left\{ -\frac{1}{2}tr[\Sigma^{-1}\underline{S}] \right\} \\
 \\ &\propto \det(\Sigma)^{-\frac{T+N+K+\underline{\nu}+1}{2}} \cdot \det(\lambda I_T)^{-\frac{N}{2}} 
-\\ &\times \exp \left\{-\frac{1}{2} tr[\Sigma^{-1}(Y'(\lambda I_T)^{-1}Y - 2A'X'(\lambda I_T)^{-1}Y + A'X'(\lambda I_T)^{-1}XA + A'\underline{V}^{-1}A -2A'\underline{V}^{-1}\underline{A} + \underline{A}'\underline{V}^{-1}\underline{A} + \underline{S})] \right\}
+\\ &\quad\times \exp \left\{-\frac{1}{2} tr[\Sigma^{-1}(Y'(\lambda I_T)^{-1}Y - 2A'X'(\lambda I_T)^{-1}Y + A'X'(\lambda I_T)^{-1}XA + A'\underline{V}^{-1}A -2A'\underline{V}^{-1}\underline{A} + \underline{A}'\underline{V}^{-1}\underline{A} + \underline{S})] \right\}
 \end{align}
 $$
-This follows:
+Then, the joint posterior distribution of $A$ and $\Sigma$ is derived as:
 $$
 \begin{gather}
-p(A,\Sigma|Y,X,\lambda) = p(A|Y,X,\Sigma, \lambda) \cdot p(\Sigma|Y,X,\lambda) = MNIW_{K \times N}(\overline{A}, \overline{V}, \overline{S}, \overline{\nu}) \\
-\\ p(A|Y,X,\Sigma,\lambda) = MN_{K \times N}(\overline{A}, \Sigma, \overline{V}) \\
-\\ p(\Sigma|Y,X,\lambda) = IW_N(\overline{S},\overline{\nu}) \\
+p(A,\Sigma|Y,X,\lambda) = p(A|Y,X,\Sigma, \lambda) \cdot p(\Sigma|Y,X,\lambda) = \mathcal{MNIW}_{K \times N}(\overline{A}, \overline{V}, \overline{S}, \overline{\nu}) \\
+\\ p(A|Y,X,\Sigma,\lambda) = \mathcal{MN}_{K \times N}(\overline{A}, \Sigma, \overline{V}) \\
+\\ p(\Sigma|Y,X,\lambda) = \mathcal{IW}_N(\overline{S},\overline{\nu}) \\
 \end{gather}
 $$
-where
+where the parameters of the joint posterior distribution are the following:
 $$
 \begin{align}
 \overline{V} &= [X'(\lambda I_T)^{-1}X + \underline{V}^{-1}]^{-1} \\
@@ -804,30 +1054,28 @@ $$
 \overline{\nu} &= \underline{\nu} + T
 \end{align}
 $$
-
-The **conditional posterior distribution of** $\lambda$:
+The **conditional posterior distribution of** $\lambda$ is derived as follows:
 $$
 \begin{align}
-p(\lambda|Y,X,A,\Sigma) &\propto L(A,\Sigma,\lambda|Y,X) \cdot p(A,\Sigma) \cdot p(\lambda) \\
-\\ &\propto L(A,\Sigma,\lambda|Y,X) \cdot p(\lambda) \\
+p(\lambda|Y,X,A,\Sigma) &\propto L(A,\Sigma|Y,X,\lambda) \cdot p(\lambda) \\
 \\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\lambda I_T)^{-\frac{N}{2}} \cdot
 \exp \left\{-\frac{1}{2} tr[\Sigma^{-1} (Y-XA)' (\lambda I_T)^{-1} (Y-XA)] \right\}
-\\ &\times \lambda^{-\frac{\underline{\nu_{\lambda}}+2}{2}} \cdot 
+\\ &\quad\times \lambda^{-\frac{\underline{\nu_{\lambda}}+2}{2}} \cdot 
 \exp \left\{-\frac{1}{2}\frac{\underline{s_{\lambda}}}{\lambda} \right\} \\
 \\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(I_T)^{-\frac{N}{2}} \cdot 
 \exp \left\{-\frac{1}{2}\frac{1}{\lambda} tr[\Sigma^{-1}(Y-XA)'(Y-XA)] \right\} \\
-&\times \lambda^{-\frac{TN}{2}} \cdot \lambda^{-\frac{\underline{\nu_{\lambda}}+2}{2}} \cdot 
+&\quad\times \lambda^{-\frac{TN}{2}} \cdot \lambda^{-\frac{\underline{\nu_{\lambda}}+2}{2}} \cdot 
 \exp \left\{-\frac{1}{2}\frac{\underline{s_{\lambda}}}{\lambda} \right\} \\
 \\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(I_T)^{-\frac{N}{2}} \cdot \lambda^{-\frac{TN+\underline{\nu_{\lambda}}+2}{2}} \cdot \exp \left\{-\frac{1}{2}\frac{1}{\lambda} [tr(\Sigma^{-1}(Y-XA)'(Y-XA)) + \underline{s_{\lambda}}] \right\}
 \end{align}
 $$
-This follows
+where the posterior distribution of $\lambda$ is inverse gamma 2 distribution:
 $$
 \begin{align}
-\lambda|Y,X, A,\Sigma &\sim IG2(\overline{s_{\lambda}},\overline{\nu_{\lambda}})
+p(\lambda|Y,X, A,\Sigma) = \mathcal{IG}2(\overline{s_{\lambda}},\overline{\nu_{\lambda}})
 \end{align}
 $$
-where
+and the parameters of the posterior distribution is:
 $$
 \begin{align}
 \overline{s_{\lambda}} &= tr[\Sigma^{-1}(Y-XA)'(Y-XA)] + \underline{s_{\lambda}} \\
@@ -839,68 +1087,35 @@ $$
 
 To check the validity of the algorithms, two independent bi-variate Gaussian random walk processes with 1,000 observations were generated to simulate unit-root non-stationary macroeconomic variables.
 
-#### Gibbs Sampler
+#### **Gibbs Sampler**
+Using the parameter of the joint posterior distribution $\overline{A}$, $\overline{V}$,$\overline{S}$, $\overline{\nu}$ in the section 4.2.2, we obtain a sample of $S$ draws from the posterior distribution.
 
-Initialise $\lambda$ at $\lambda^{(0)}$
-From S = 1, 
+Initialise $\lambda$ at $\lambda^{(0)}$.
 
-1. Draw $\Sigma^{(s)} \sim P(\Sigma|Y,X,\lambda^{(s-1)})$ from the $IW_N(\overline{S},\overline{\nu})$ distribution
-2. Draw $A^{(s)} \sim P(A|Y,X,\Sigma^{(s)},\lambda^{(s-1)})$ from the $MN_{K \times N}(\overline{A},\Sigma^{(s)}, \overline{V})$ distribution
-3. Draw $\lambda^{(s)} \sim P(\lambda|Y,X,A^{(s)},\Sigma^{(s)})$ from $IG2(\overline{s_{\lambda}},\overline{\nu_{\lambda}})$ distribution
+At each iteration $s$ where $s$ goes from 1 to $S$,
 
-```{r random walks 2}
-set.seed(2024)
-RW11 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
-RW22 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
-RW12  <- cbind(RW11, RW22)
-```
+1. Draw $\Sigma^{(s)} \sim P(\Sigma|Y,X,\lambda^{(s-1)})$ from the $\mathcal{IW}_N(\overline{S},\overline{\nu})$ distribution using $\lambda^{(s-1)}$. For $s$ = 1, use the initialised value $\lambda^{(0)}$.
+2. Draw $A^{(s)} \sim P(A|Y,X,\Sigma^{(s)},\lambda^{(s-1)})$ from the $\mathcal{MN}_{K \times N}(\overline{A},\Sigma^{(s)}, \overline{V})$ distribution using the draws $\Sigma^{(s)}$ and $\lambda^{(s-1)}$.
+3. Draw $\lambda^{(s)} \sim P(\lambda|Y,X,A^{(s)},\Sigma^{(s)})$ from $\mathcal{IG}2(\overline{S_{\lambda}},\overline{\nu_{\lambda}})$ distribution using the draws $A^{(s)}$ and $\Sigma^{(s)}$.
 
-```{r, random walk extended model posterior distribution, echo=TRUE}
+Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}} ,\lambda^{(s)}\right\}^{S}_{s=1}$.
+
+Applying same method as 4.1.3, except for applying the function below to compute posterior distribution for t-distributed error model. 
+```{r extended model posterior distribution function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
-
-RW.extended <- function(data, sign.restrictions, p, S){
-   
-  # Define the lag order and the number of iterations
+extended.posterior <- function(X, Y, N, p, S, prior.distribution) {
+  
+  A.prior  <- prior.distribution$A.prior
+  V.prior  <- prior.distribution$V.prior
+  S.prior  <- prior.distribution$S.prior
+  nu.prior <- prior.distribution$nu.prior
+  s.prior.lambda   <- 5    # assume that it is fixed
+  nu.prior.lambda  <- 5    # assume that it is fixed
+  lambda   <- s.prior.lambda/rchisq(1, nu.prior.lambda)
+  
+  # Posterior distribution
   ############################################################
-  # p                       # number of lags
-  # S                       # number of posterior draws
-
-  # Create Y and X matrices
-  ############################################################
-  Y           <- data[(p+1):nrow(data), ]
-  X           <- matrix(1, nrow(Y), 1)
-  for (i in 1:p){
-    X         <- cbind(X, data[(p+1):nrow(data)-i, ])
-    }
-  
-  T           <- nrow(Y)    # number of time periods
-  N           <- ncol(Y)    # number of variables
-  K           <- 1+p*N
-  
-  # Convert it into a matrix form
-  Y           <- as.matrix(Y)
-  X           <- as.matrix(X)
-  
-  # Calculate the MLE
-  ############################################################
-  A.hat       <- solve(t(X)%*%X)%*%t(X)%*%Y                
-  Sigma.hat   <- t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)
-  
-  # Specify prior distribution parameters
-  ############################################################
-  kappa.1     <- 0.02^2
-  kappa.2     <- 100
-  
-  A.prior           <- matrix(0, nrow(A.hat), ncol(A.hat))
-  A.prior[2:(N+1),] <- diag(N)
-  V.prior           <- diag(c(kappa.2, kappa.1*((1:p)^(-2))%x%rep(1,N)))
-  S.prior           <- diag(diag(Sigma.hat))
-  nu.prior          <- N+1
-  s.prior.lambda    <- 5   # assume that it is fixed
-  nu.prior.lambda   <- 5   # assume that it is fixed
-  lambda            <- s.prior.lambda/rchisq(1, nu.prior.lambda)
-  
   # Initialise arrays to store posterior draws
   Sigma.posterior   <- array(NA, c(N,N,S))
   A.posterior       <- array(NA, c(K,N,S))
@@ -911,7 +1126,7 @@ RW.extended <- function(data, sign.restrictions, p, S){
   for (s in 1:S){
     
     # Specify the matrix normal-inverse Wishart posterior parameters
-    ############################################################
+    # ----------------------------------------------------------
     V.bar.inv  <- t(X)%*%X/lambda + diag(1/diag(V.prior))
     V.bar      <- solve(V.bar.inv)
     A.bar      <- V.bar%*%(t(X)%*%Y/lambda + diag(1/diag(V.prior))%*%A.prior)
@@ -920,7 +1135,7 @@ RW.extended <- function(data, sign.restrictions, p, S){
     S.bar.inv  <- solve(S.bar)
     
     # Draw Posterior distribution
-    ############################################################
+    # ----------------------------------------------------------
     ## Draw from the Reduced Form
     ### Draw Sigma from the inverse Wishart distribution
     Sigma.posterior.inv   <- rWishart(1, df=nu.bar, Sigma=S.bar.inv)[,,1]
@@ -931,10 +1146,10 @@ RW.extended <- function(data, sign.restrictions, p, S){
     
     ### Draw lambda from inverse gamma 2 distribution
     s.posterior.lambda    <- sum(diag(Sigma.posterior.inv%*%t(Y-X%*%A.posterior[,,s])%*%(Y-X%*%A.posterior[,,s]))) + s.prior.lambda
-    nu.posterior.lambda   <- nrow(Y)*N + nu.prior.lambda
+    nu.posterior.lambda   <- nrow(Y)*ncol(Y) + nu.prior.lambda
     lambda                <- s.posterior.lambda/rchisq(1, nu.posterior.lambda)
     lambda.posterior[s]   <- lambda
-  
+    
     ## Draw from the Structural Form
     ### Draw B0
     cholSigma.s           <- chol(Sigma.posterior[,,s])
@@ -942,317 +1157,34 @@ RW.extended <- function(data, sign.restrictions, p, S){
     
     ### Draw Bplus
     B1.posterior[,,s]     <- B0.posterior[,,s]%*%t(A.posterior[,,s])
-    }
+  }
   
-  # Identification via sign restrictions 
-  ############################################################
-  # Generate corresponding R matrix
-  R <- diag(sign.restrictions)
-  
-  # Initialise arrays to store Q identified estimates
-  i.vec <- c()
-  Q.store      <- array(NA, c(N,N,S))
-  B0.store     <- array(NA, c(N,N,S))
-  B1.store     <- array(NA, c(N,K,S))
-  
-  for (s in 1:S){
-    B0.tilde      <- B0.posterior[,,s]
-    B1.tilde      <- B1.posterior[,,s]
-    
-    sign.restrictions.do.not.hold = TRUE
-    i=1
-    while (sign.restrictions.do.not.hold){
-      X           <- matrix(rnorm(N*N), N, N)         
-      QR          <- qr(X, tol=1e-10)
-      Q           <- qr.Q(QR, complete=TRUE)
-      R           <- qr.R(QR, complete=TRUE)
-      Q           <- t(Q%*%diag(sign(diag(R))))
-      B0          <- Q%*%B0.tilde                    
-      B1          <- Q%*%B1.tilde                   
-      B0.inv      <- solve(B0)      
-      check       <- all(B0[1,1]>0, B0[2,2]>0)
-      
-      if (check){sign.restrictions.do.not.hold = FALSE}
-      i=i+1
-      }
-    
-    i.vec <- c(i.vec, i) 
-    Q.store[,,s]   <- Q
-    B0.store[,,s]  <- B0
-    B1.store[,,s]  <- B1
-    }
-  
-  B0.mean     <- apply(B0.store, 1:2, mean)  
-  B1.mean     <- apply(B1.store, 1:2, mean)
-  
-  return(list(B0.mean = B0.mean, 
-              B1.mean = B1.mean, 
+  return(list(B0.posterior = B0.posterior, 
+              B1.posterior = B1.posterior,
               A.posterior = A.posterior, 
               Sigma.posterior = Sigma.posterior,
               lambda.posterior = lambda.posterior))
-  }
+}
 ```
 
-```{r random walk extended model result}
-RW.extended <- RW.extended(data=RW12, sign.restrictions=c(1, 1), p=1, S=1000)
-```
-
-The results shows that
-
-```{r random walk extended model Matrix B0}
-#| label: table - RW Extended B0
-#| tbl-cap: Mean of the Matrix B[0]
-knitr::kable(round(apply(RW.extended$B0.mean, 1:2, mean), 4))
-```
-
-```{r random walk extended model Matrix B+}
-#| label: table - RW Extended B+
-#| tbl-cap: Mean of the Matrix B[+]
-knitr::kable(round(apply(RW.extended$B1.mean, 1:2, mean), 4))
-```
-
-```{r random walk extended model A posterior}
-#| label: table - RW Extended A Posterior
-#| tbl-cap: Mean of the A posterior
-knitr::kable(round(apply(RW.extended$A.posterior, 1:2, mean), 4))
-```
-
-```{r random walk extended model Sigma posterior}
-#| label: table - RW Extended Sigma Posterior
-#| tbl-cap: Mean of the Sigma posterior
-knitr::kable(round(apply(RW.extended$Sigma.posterior, 1:2, mean), 4))
-```
-
-```{r random walk extended model lambda}
-#| label: table - RW Extended lambda
-#| tbl-cap: Mean of the lambda
-knitr::kable(round(mean(RW.extended$lambda.posterior), 4), col.names=c("lambda"))
-```
-
-## 4.3 Bayesian SVAR Model with Common Stochastic Volatility
-
-### 4.3.1 Model Specification
-
-
-### 4.3.2 Estimation Procedure
-
-
-### 4.3.3 Algorithm Validation
-
-
-
-# 5. Empirical Results
-
-## 5.1 Standard Bayesian SVAR model
-
-
-$$
-f(B_0,B_+)=\Theta_0=B=
-\begin{bmatrix}
-* & - & * & * & * & * \\
-* & + & * & * & * & * \\
-* & - & * & * & * & * \\
-* & + & * & * & * & * \\
-* & * & * & * & * & * \\
-* & * & * & * & * & * \\
-\end{bmatrix}
-$$
-
-$$
-\textbf{R}=\begin{bmatrix}
--1 & 0 & 0 & 0 & 0 & 0 \\
-0 & 1 & 0 & 0 & 0 & 0 \\
-0 & 0 & -1 & 0 & 0 & 0 \\
-0 & 0 & 0 & 1 & 0 & 0 \\
-0 & 0 & 0 & 0 & 0 & 0 \\
-0 & 0 & 0 & 0 & 0 & 0 \\
-\end{bmatrix}
-$$
-
-1990 Q2 onwards..
-
-```{r dataset}
-# Convert the data type
-variables <- data.frame(lapply(variables, as.numeric))
-```
-
-```{r baseline model posterior distribution}
-
-baseline <- function(data, sign.restrictions, p, S){
-  
-  # Define the lag order and the number of iterations
-  ############################################################
-  # p                       # number of lags (data frequency (quarter))
-  # S                       # number of posterior draws
-
-  # Create Y and X matrices
-  ############################################################
-  Y           <- data[(p+1):nrow(data), ]
-  X           <- matrix(1, nrow(Y), 1)
-  for (i in 1:p){
-    X         <- cbind(X, data[(p+1):nrow(data)-i, ])
-    }
-  
-  T           <- nrow(Y)    # number of time periods
-  N           <- ncol(Y)    # number of variables
-  K           <- 1+p*N
-  
-  # Convert it into a matrix form
-  Y           <- as.matrix(Y)
-  X           <- as.matrix(X)
-  
-  # Calculate the MLE
-  ############################################################
-  A.hat       <- solve(t(X)%*%X)%*%t(X)%*%Y                
-  Sigma.hat   <- t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)  
-  
-  # Specify the prior distribution parameters
-  ############################################################
-  kappa.1     <- 1
-  kappa.2     <- 100
-  
-  A.prior     <- matrix(0, nrow(A.hat), ncol(A.hat))
-  A.prior[2:(N+1),] <- diag(N)
-  V.prior     <- diag(c(kappa.2, kappa.1*((1:p)^(-2))%x%rep(1,N)))
-  S.prior     <- diag(diag(Sigma.hat))
-  nu.prior    <- N+1
-  
-  # Specify the matrix normal-inverse Wishart posterior parameters
-  ############################################################
-  V.bar.inv   <- t(X)%*%X + diag(1/diag(V.prior))
-  V.bar       <- solve(V.bar.inv)
-  A.bar       <- V.bar%*%(t(X)%*%Y + diag(1/diag(V.prior))%*%A.prior)
-  nu.bar      <- nrow(Y) + nu.prior
-  S.bar       <- S.prior + t(Y)%*%Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
-  S.bar.inv   <- solve(S.bar)
-  
-  # Draw Posterior distribution
-  ############################################################
-  ## Draw from the Reduced Form
-  ### Draw Sigma from the inverse Wishart distribution
-  Sigma.posterior   <- rWishart(S, df=nu.bar, Sigma=S.bar.inv)
-  Sigma.posterior   <- apply(Sigma.posterior, 3, solve)            
-  Sigma.posterior   <- array(Sigma.posterior, c(N,N,S))
-  
-  ### Draw A from matrix-variate normal distribution
-  A.posterior       <- array(rnorm(prod(c(dim(A.bar),S))),c(dim(A.bar),S)) 
-  
-  # Initialise arrays to store posterior draws
-  B0.posterior      <- array(NA, c(N,N,S))
-  B1.posterior      <- array(NA, c(N,K,S))
-  
-  for (s in 1:S){
-    ## Draw from the Structural Form
-    ### Draw B0
-    cholSigma.s        <- chol(Sigma.posterior[,,s])
-    L                  <- t(chol(V.bar))
-    B0.posterior[,,s]  <- solve(t(cholSigma.s)) 
-    A.posterior[,,s]   <- A.bar + L%*%A.posterior[,,s]%*%cholSigma.s
-    
-    ### Draw Bplus
-    B1.posterior[,,s]  <- B0.posterior[,,s]%*%t(A.posterior[,,s])
-    }
-  
-  # Identification via sign restrictions
-  ############################################################
-  # Generate corresponding R matrix
-  R <- diag(sign.restrictions)
-  
-  # Initialise arrays to store Q identified estimates
-  i.vec <- c()
-  Q.store      <- array(NA, c(N,N,S))
-  B0.store     <- array(NA, c(N,N,S))
-  B1.store     <- array(NA, c(N,K,S))
-  
-  for (s in 1:S){
-    B0.tilde      <- B0.posterior[,,s]
-    B1.tilde      <- B1.posterior[,,s]
-    
-    sign.restrictions.do.not.hold = TRUE
-    i=1
-    while (sign.restrictions.do.not.hold){
-      X           <- matrix(rnorm(N*N), N, N)         
-      QR          <- qr(X, tol=1e-10)
-      Q           <- qr.Q(QR, complete=TRUE)
-      R           <- qr.R(QR, complete=TRUE)
-      Q           <- t(Q%*%diag(sign(diag(R))))
-      B0          <- Q%*%B0.tilde                    
-      B1          <- Q%*%B1.tilde                   
-      B0.inv      <- solve(B0)      
-      check       <- all(B0.inv[1,2]<0, B0.inv[2,2]>0, B0.inv[3,2]<0, B0.inv[4,2]>0)
-      
-      if (check){sign.restrictions.do.not.hold = FALSE}
-      i=i+1
-      }
-    
-    i.vec <- c(i.vec, i) 
-    Q.store[,,s]   <- Q
-    B0.store[,,s]  <- B0
-    B1.store[,,s]  <- B1
-    }
-  
-  B0.mean     <- apply(B0.store, 1:2, mean)  
-  B1.mean     <- apply(B1.store, 1:2, mean)
-
-  return(list(B0.mean = B0.mean, 
-              B1.mean = B1.mean, 
-              A.posterior = A.posterior, 
-              Sigma.posterior = Sigma.posterior))
-  }
-```
-
-```{r baseline model result}
-baseline <- baseline(data=variables, sign.restrictions=c(-1, 1, -1, 1, 0, 0), p=4, S=50000)
-```
-
-```{r baseline model Matrix B0}
-#| label: table - Baseline Model B0
-#| tbl-cap: Mean of the Matrix B[0]
-knitr::kable(round(apply(baseline$B0.mean, 1:2, mean), 4))
-```
-
-```{r baseline model Matrix B+}
-#| label: table - Baseline Model B+
-#| tbl-cap: Mean of the Matrix B[+]
-knitr::kable(round(apply(baseline$B1.mean, 1:2, mean), 4))
-```
-
-```{r define colours for impulse response function}
-# Define colors
-############################################################
-mcxs1  <- "#05386B"
-mcxs2  <- "#379683"
-mcxs3  <- "#5CDB95"
-mcxs4  <- "#8EE4AF"
-mcxs5  <- "#EDF5E1"
-purple <- "#b02442"
-  
-mcxs1.rgb    <- col2rgb(mcxs1)
-mcxs1.shade1 <- rgb(mcxs1.rgb[1],mcxs1.rgb[2],mcxs1.rgb[3], alpha=120, maxColorValue=255)
-mcxs2.rgb    <- col2rgb(mcxs2)
-mcxs2.shade1 <- rgb(mcxs2.rgb[1],mcxs2.rgb[2],mcxs2.rgb[3], alpha=120, maxColorValue=255)
-```
-
-Impulse response functions of the baseline model show a positive monetary policy shock on variables. The shaded area represents 68% of the confidence interval. In the short run,  GDP decreases gradually, but a year after the shock, GDP decreases at a steeper rate. In the short run, interest rates immediately respond to the shock and normalised after five years of the shock. The consumer price index slightly decreases in the short run. The exchange rate has a positive effect in the short and long run. The stock price has a positive effect in the short run, but it does not have a positive effect in the long run.
-
-```{r baseline model irf, echo=TRUE}
-#| code-fold: true
-#| code-summary: "See R code"
+```{r RW extended model data}
+set.seed(2024)
+RW1 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
+RW2 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
+RW  <- cbind(RW1, RW2)
 
 # Define the lag order and the number of iterations
-############################################################
-p           <- 4          # number of lags (data frequency (quarter))
-S           <- 50000      # number of posterior draws
-h           <- 20         # forecast horizon
+# ----------------------------------------------------------
+p           <- 1          # number of lags
+S           <- 1000       # number of posterior draws
 
 # Create Y and X matrices
-############################################################
-Y           <- variables[(p+1):nrow(variables), ]
+# ----------------------------------------------------------
+Y           <- RW[(p+1):nrow(RW), ]
 X           <- matrix(1, nrow(Y), 1)
 for (i in 1:p){
-  X         <- cbind(X, variables[(p+1):nrow(variables)-i, ])
-  }
-
+  X         <- cbind(X, RW[(p+1):nrow(RW)-i, ])
+}
 T           <- nrow(Y)    # number of time periods
 N           <- ncol(Y)    # number of variables
 K           <- 1+p*N
@@ -1261,113 +1193,767 @@ K           <- 1+p*N
 Y           <- as.matrix(Y)
 X           <- as.matrix(X)
 
-# Calculate the MLE
-############################################################
-A.hat       <- solve(t(X)%*%X)%*%t(X)%*%Y                
-Sigma.hat   <- t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)  
-  
-# Specify the prior distribution parameters
-############################################################
-kappa.1     <- 1
-kappa.2     <- 100
-  
-A.prior     <- matrix(0, nrow(A.hat), ncol(A.hat))
-A.prior[2:(N+1),] <- diag(N)
-V.prior     <- diag(c(kappa.2, kappa.1*((1:p)^(-2))%x%rep(1,N)))
-S.prior     <- diag(diag(Sigma.hat))
-nu.prior    <- N+1
-  
-# Specify the matrix normal-inverse Wishart posterior parameters
-############################################################
-V.bar.inv   <- t(X)%*%X + diag(1/diag(V.prior))
-V.bar       <- solve(V.bar.inv)
-A.bar       <- V.bar%*%(t(X)%*%Y + diag(1/diag(V.prior))%*%A.prior)
-nu.bar      <- nrow(Y) + nu.prior
-S.bar       <- S.prior + t(Y)%*%Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
-S.bar.inv   <- solve(S.bar)
-  
-# Draw Posterior distribution
-############################################################
-## Draw from the Reduced Form
-### Draw Sigma from the inverse Wishart distribution
-Sigma.posterior   <- rWishart(S, df=nu.bar, Sigma=S.bar.inv)
-Sigma.posterior   <- apply(Sigma.posterior, 3, solve)            
-Sigma.posterior   <- array(Sigma.posterior, c(N,N,S))
+# Define sign restrictions
+# ----------------------------------------------------------
+sign.restrictions=c(1, 1)
+```
 
-### Draw A from matrix-variate normal distribution
-A.posterior       <- array(rnorm(prod(c(dim(A.bar),S))),c(dim(A.bar),S)) 
-  
-# Initialise arrays to store posterior draws
-B0.posterior      <- array(NA, c(N,N,S))
-B1.posterior      <- array(NA, c(N,K,S))
-  
-for (s in 1:S){
-  ## Draw from the Structural Form
-  ### Draw B0
-  cholSigma.s        <- chol(Sigma.posterior[,,s])
-  L                  <- t(chol(V.bar))
-  B0.posterior[,,s]  <- solve(t(cholSigma.s)) 
-  A.posterior[,,s]   <- A.bar + L%*%A.posterior[,,s]%*%cholSigma.s
-  
-  ### Draw Bplus
-  B1.posterior[,,s]  <- B0.posterior[,,s]%*%t(A.posterior[,,s])
-  }
-  
-# Identification via sign restrictions
-############################################################
-# Generate corresponding R matrix
-sign.restrictions <- c(-1, 1, -1, 1, 0, 0)
-R <- diag(sign.restrictions)
-  
-# Initialise arrays to store Q identified estimates
-i.vec <- c()
-Q.store      <- array(NA, c(N,N,S))
-B0.store     <- array(NA, c(N,N,S))
-B1.store     <- array(NA, c(N,K,S))
+```{r RW extended model posterior distribution}
+prior.parameters     <- prior.distribution(N, p)
+posterior.parameters <- extended.posterior(X, Y, N, p, S, prior.parameters)
+B.restricted         <- RW.identification(N, p, sign.restrictions, posterior.parameters)
+```
 
-for (s in 1:S){
-  B0.tilde      <- B0.posterior[,,s]
-  B1.tilde      <- B1.posterior[,,s]
+The results below show the mean of the matrices $B_0$ and $B_+$.
+```{r random walk extended model Matrix B0}
+#| label: RW-extended-B0
+#| tbl-cap: Mean of $B_0$ Matrix
+knitr::kable(round(apply(B.restricted$B0.mean, 1:2, mean), 4))
+```
+
+```{r random walk extended model Matrix B+}
+#| label: RW-extended-B+
+#| tbl-cap: Mean of $B_+$ Matrix
+knitr::kable(round(apply(B.restricted$B1.mean, 1:2, mean), 4))
+```
+
+The results below show the mean of the matrices $A$ and $\Sigma$.
+```{r random walk extended model A posterior}
+#| label: RW-extended-A-posterior
+#| tbl-cap: Mean of the $A$ posterior
+A.posterior.RW.extended <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.RW.extended) <- c("y1", "y2")
+rownames(A.posterior.RW.extended) <- c("constant", "lag of y1", "lag of y2")
+knitr::kable(A.posterior.RW.extended)
+```
+
+```{r random walk extended model Sigma posterior}
+#| label: RW-extended-sigma-posterior
+#| tbl-cap: Mean of the $\Sigma$ posterior
+Sigma.posterior.RW.extended <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.RW.extended) <- c("y1", "y2")
+rownames(Sigma.posterior.RW.extended) <- c("y1", "y2")
+knitr::kable(Sigma.posterior.RW.extended)
+```
+
+The lambda value below verifies that the main diagonal of sigma is equal to 1 if multiply it with lambda.
+```{r random walk extended model lambda posterior}
+#| label: RW-extended-lambda
+#| tbl-cap: Mean of the $\lambda$ posterior
+knitr::kable(round(mean(posterior.parameters$lambda.posterior), 4), col.names=c("lambda"))
+```
+
+
+## 4.3 Bayesian SVAR Model with Stochastic Volatility
+
+### 4.3.1 Model Specification
+
+The reduced form representation in a matrix form is as follows:
+$$
+\begin{gather}
+Y = XA + E \\
+\\ E|X \sim \mathcal{MN}_{T \times N}(0_{T \times N},\Sigma,\text{diag}(\sigma^2))
+\end{gather} 
+$$ 
+where the column-specific covariance matrix of error terms is set to be $\text{diag}(\sigma^2)$. 
+
+The parameter $\sigma^2$ is a vector of conditional heteroskedasticity variables:
+
+### 4.3.2 Estimation Procedure
+
+Then we have the likelihood function as: 
+$$
+\begin{gather}
+L(A,\Sigma|Y,X,\sigma^2) \propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\text{diag}(\sigma^2))^{-\frac{N}{2}} \cdot \exp \left\{-\frac{1}{2} tr \left[ \Sigma^{-1}(Y-XA)'\text{diag}(\sigma^2)^{-1}(Y-XA) \right] \right\} \\
+\end{gather} 
+$$
+
+The **conditional posterior distribution of** $A$ **and** $\Sigma$ is given by the product of the likelihood function and the prior distribution.
+$$
+\begin{align}
+p(A,\Sigma|Y,X,\sigma^2) &\propto L(A,\Sigma|Y,X,\sigma^2) \cdot p(A,\Sigma) \\
+\\ &\propto L(A,\Sigma|Y,X,\sigma^2) \cdot p(A|\Sigma) \cdot p(\Sigma) \\
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\text{diag}(\sigma^2))^{-\frac{N}{2}} \cdot \exp \left\{-\frac{1}{2} tr \left[ \Sigma^{-1}(Y-XA)'\text{diag}(\sigma^2)^{-1}(Y-XA) \right] \right\} 
+\\ &\quad\times \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}\underline{S}] \right\} \\
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\text{diag}(\sigma^2))^{-\frac{N}{2}} \cdot \exp \left\{-\frac{1}{2} tr \left[ \Sigma^{-1}(A-\hat{A})'X'\text{diag}(\sigma^2)^{-1}X(A-\hat{A}) \right] \right\} \cdot \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1}(Y-X \hat{A})'\text{diag}(\sigma^2)^{-1}(Y-X \hat{A}) \right] \right\} 
+\\ &\quad\times \det(\Sigma)^{-\frac{N+K+\underline{v}+1}{2}} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} \cdot \exp\left\{-\frac{1}{2}tr[\Sigma^{-1}\underline{S}] \right\} \\
+\\ &\propto \det{(\Sigma)}^{-\frac{T+N+K+\underline{\nu}+1}{2}} \cdot \det(\text{diag}(\sigma^2))^{-\frac{N}{2}} 
+\\ &\quad\times \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1} \left[(A-\hat{A})'X'\text{diag}(\sigma^2)^{-1}X(A-\hat{A})+(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})+(Y-X\hat{A})'\text{diag}(\sigma^2)^{-1}(Y-X\hat{A})+\underline{S} \right] \right] \right\} \\
+\\ &\propto \det(\Sigma)^{-\frac{T+N+K+\underline{\nu}+1}{2}} \cdot \det(\text{diag}(\sigma^2))^{-\frac{N}{2}} 
+\\ &\quad\times \exp \left\{-\frac{1}{2} tr[\Sigma^{-1}(Y'\text{diag}(\sigma^2)^{-1}Y - 2A'X'\text{diag}(\sigma^2)^{-1}Y + A'X'\text{diag}(\sigma^2)^{-1}XA + A'\underline{V}^{-1}A -2A'\underline{V}^{-1}\underline{A} + \underline{A}'\underline{V}^{-1}\underline{A} + \underline{S})] \right\}
+\end{align}
+$$ 
+
+The **full conditional posterior** of $(A,\Sigma)$ would follow a $MNIW(\bar{A},\bar{V},\bar{S},\bar{\nu})$ distribution. 
+$$
+\begin{gather}
+p(A,\Sigma|X,Y,\sigma^2) \propto L(A,\Sigma|Y,X,\sigma^2) \times  p(A|\Sigma) \times p(\Sigma) 
+\end{gather}
+$$
+with parameters: 
+$$
+\begin{align}
+\overline{V} &= (X'\text{diag}(\sigma^2)^{-1}X + \underline{V}^{-1})^{-1} 
+\\ \overline{A} &= \overline{V}(X'\text{diag}(\sigma^2)^{-1}Y + \underline{V}^{-1}\underline{A}) 
+\\ \overline{S} &= \underline{S} + Y'\text{diag}(\sigma^2)^{-1}Y + \underline{A}'\underline{V}^{-1}\underline{A} - \overline{A}'\overline{V}^{-1}\overline{A}
+\\ \overline{\nu} &= \underline{\nu} + T
+\end{align}
+$$
+
+
+### 4.3.3 Algorithm
+
+#### **Gibbs Sampler**
+
+```{r echo=TRUE}
+#| code-fold: true
+#| code-summary: "See R code"
+SVcommon.Gibbs.iteration <- function(aux, priors){
+  # A single iteration of the Gibbs sampler for the SV component
+  #
+  # aux is a list containing:
+  #   Y        - a TxN matrix
+  #   X        - a TxK matrix
+  #   H        - a Tx1 matrix
+  #   h0       - a scalar
+  #   sigma.v2 - a scalar
+  #   s        - a Tx1 matrix
+  #   A        - a KxN matrix
+  #   Sigma    - an NxN matrix
+  #   sigma2   - a Tx1 matrix
+  #
+  # priors is a list containing:
+  #   h0.v      - a positive scalar
+  #   h0.m      - a scalar
+  #   sigmav.s  - a positive scalar
+  #   sigmav.nu - a positive scalar
+  #   HH        - a TxT matrix
+  
+  T             <- dim(aux$Y)[1]
+  N             <- dim(aux$Y)[2]
+  alpha.st      <- c(1.92677,1.34744,0.73504,0.02266,0-0.85173,-1.97278,-3.46788,-5.55246,-8.68384,-14.65000)
+  sigma.st      <- c(0.11265,0.17788,0.26768,0.40611,0.62699,0.98583,1.57469,2.54498,4.16591,7.33342)
+  pi.st         <- c(0.00609,0.04775,0.13057,0.20674,0.22715,0.18842,0.12047,0.05591,0.01575,0.00115)
+  
+  Lambda        <- solve(chol(aux$Sigma))
+  Z             <- rowSums( ( aux$Y - aux$X %*% aux$A ) %*% Lambda ) / sqrt(N)
+  Y.tilde       <- as.vector(log((Z + 0.0000001)^2))
+  Ytilde.alpha  <- as.matrix(Y.tilde - alpha.st[as.vector(aux$s)])
+  
+  # sampling initial condition
+  ############################################################
+  V.h0.bar      <- 1/((1/priors$h0.v) + (1/aux$sigma.v2))
+  m.h0.bar      <- V.h0.bar*((priors$h0.m/priors$h0.v) + (aux$H[1]/aux$sigma.v2))
+  h0.draw       <- rnorm(1, mean = m.h0.bar, sd = sqrt(V.h0.bar))
+  aux$h0        <- h0.draw
+  
+  # sampling sigma.v2
+  ############################################################
+  sigma.v2.s    <- priors$sigmav.s + sum(c(aux$H[1] - aux$h0, diff(aux$H))^2)
+  sigma.v2.draw <- sigma.v2.s/rchisq(1,priors$sigmav.nu + T)
+  aux$sigma.v2  <- sigma.v2.draw
+  
+  # sampling auxiliary states
+  ############################################################
+  Pr.tmp        <- simplify2array(lapply(1:10,function(x){
+    dnorm(Y.tilde, mean = as.vector(aux$H+alpha.st[x]), sd=sqrt(sigma.st[x]), log=TRUE) + log(pi.st[x])
+  }))
+  Pr            <- t(apply(Pr.tmp, 1, function(x){exp(x-max(x))/sum(exp(x-max(x)))}))
+  s.cum         <- t(apply(Pr,1,cumsum))
+  r             <- matrix(rep(runif(T),10), ncol = 10)
+  ss            <- apply(s.cum<r, 1, sum) + 1
+  aux$s         <- as.matrix(ss)
+
+  # sampling log-volatilities using functions for tridiagonal precision matrix
+  ############################################################
+  Sigma.s.inv   <- diag(1/sigma.st[as.vector(aux$s)])
+  D.inv         <- Sigma.s.inv + (1/aux$sigma.v2)*priors$HH
+  b             <- as.matrix(Ytilde.alpha/sigma.st[as.vector(aux$s)] + (aux$h0/aux$sigma.v2)*diag(T)[,1])
+  lead.diag     <- diag(D.inv)
+  sub.diag      <- mgcv::sdiag(D.inv,-1)
+  D.chol        <- mgcv::trichol(ld=lead.diag, sd=sub.diag)
+  D.L           <- diag(D.chol$ld)
+  mgcv::sdiag(D.L,-1) <- D.chol$sd
+  x             <- as.matrix(rnorm(T))
+  a             <- forwardsolve(D.L,b)
+  draw          <- backsolve(t(D.L),a+x)
+  aux$H         <- as.matrix(draw)
+  aux$sigma2    <- as.matrix(exp(draw))
+  
+  return(aux)
+}
+```
+
+```{r SV baseline model posterior distribution function, echo=TRUE}
+#| code-fold: true
+#| code-summary: "See R code"
+SV.baseline.posterior <- function(Y, X, S, prior.distribution){
+  
+  N <- ncol(Y)
+  K <- ncol(X)
+  T <- nrow(Y)
+ 
+  A.prior <- prior.distribution$A.prior
+  V.prior <- prior.distribution$V.prior
+  S.prior <- prior.distribution$S.prior
+  nu.prior <- prior.distribution$nu.prior
+
+  Sigma.posterior   <- array(NA, c(N,N,S))
+  A.posterior       <- array(NA, c(K,N,S))
+  H.posterior       <- array(NA,c(T, S+1))
+  B0.posterior      <- array(NA, c(N,N,S))
+  B1.posterior      <- array(NA, c(N,K,S))
+  
+  # Initialise h0
+  H.posterior[,1]     <- matrix(1, T, 1) 
+  HH                  <- 2*diag(T)
+  mgcv::sdiag(HH, -1) <- -1
+  mgcv::sdiag(HH, 1)  <- -1
+  nu.bar              <- nrow(Y) + nu.prior
+  
+  # Define priors for the SV model
+  priors = list(HH = HH,
+                h0.m = 0,
+                h0.v = 1,
+                sigmav.s = 1,
+                sigmav.nu = 1)
+  
+  for (s in 1:S){
     
-  sign.restrictions.do.not.hold = TRUE
-  i=1
-  while (sign.restrictions.do.not.hold){
-    X           <- matrix(rnorm(N*N), N, N)         
-    QR          <- qr(X, tol=1e-10)
-    Q           <- qr.Q(QR, complete=TRUE)
-    R           <- qr.R(QR, complete=TRUE)
-    Q           <- t(Q%*%diag(sign(diag(R))))
-    B0          <- Q%*%B0.tilde                    
-    B1          <- Q%*%B1.tilde                   
-    B0.inv      <- solve(B0)      
-    check       <- all(B0.inv[1,2]<0, B0.inv[2,2]>0, B0.inv[3,2]<0, B0.inv[4,2]>0)
+    # Posterior distribution
+    ############################################################
+    # Specify the matrix normal-inverse Wishart posterior parameters
+    # ----------------------------------------------------------
+    V.bar.inv   <- t(X)%*%diag(1/H.posterior[,s])%*%X + diag(1/diag(V.prior))
+    V.bar       <- solve(V.bar.inv)
+    A.bar       <- V.bar%*%(t(X)%*%diag(1/H.posterior[,s])%*%Y + diag(1/diag(V.prior))%*%A.prior)
+    S.bar       <- S.prior + t(Y)%*%diag(1/H.posterior[,s])%*%Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior-t(A.bar)%*%V.bar.inv%*%A.bar
+    S.bar.inv   <- solve(S.bar)
     
-    if (check){sign.restrictions.do.not.hold = FALSE}
-    i=i+1
+    # Draw Posterior distribution
+    # ----------------------------------------------------------
+    ## Draw from the Reduced Form
+    ### Draw Sigma from the inverse Wishart distribution
+    Sigma.posterior.inv   <- rWishart(1, df=nu.bar, Sigma=S.bar.inv)[,,1]
+    Sigma.posterior[,,s]  <- solve(Sigma.posterior.inv)
+    
+    ### Draw A from matrix-variate normal distribution
+    A.posterior[,,s]      <- matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.bar), sigma=Sigma.posterior[,,s]%x%V.bar), ncol=N)
+    
+    ## Draw from the Structural Form
+    ### Draw B0
+    cholSigma.s           <- chol(Sigma.posterior[,,s])
+    B0.posterior[,,s]     <- solve(t(cholSigma.s)) 
+    
+    ### Draw Bplus
+    B1.posterior[,,s]     <- B0.posterior[,,s]%*%t(A.posterior[,,s])
+    
+    ## Draw H from SVcommon.Gibbs.iteration function
+    if (s == 1){  # initialise input arguments 
+        aux = list( 
+              Y             = Y,
+              X             = X,
+              H             = matrix(1,T,1),
+              h0            = 0,
+              sigma.v2      = 1,
+              s             = matrix(1,T,1),
+              Sigma         = Sigma.posterior[,,s],
+              A             = A.posterior[,,s],
+              sigma2        = matrix(1,T,1))
+        
+    }else{  # update input arguments  
+      aux = list(
+                Y           = Y,
+                X           = X,
+                H           = tmp$H,
+                h0          = tmp$h0,
+                sigma.v2    = tmp$sigma.v2,
+                s           = tmp$s,
+                Sigma       = Sigma.posterior[,,s],
+                A           = A.posterior[,,s],
+                sigma2      = tmp$sigma2)
+      }
+    
+    tmp <- SVcommon.Gibbs.iteration(aux, priors)
+    H.posterior[,s+1] <- as.matrix(tmp$sigma2)
     }
   
-  i.vec <- c(i.vec, i) 
-  Q.store[,,s]   <- Q
-  B0.store[,,s]  <- B0
-  B1.store[,,s]  <- B1
+  return(list(Sigma.posterior = Sigma.posterior[,,2:S], 
+              A.posterior = A.posterior[,,2:S], 
+              B1.posterior = B1.posterior[,,2:S], 
+              B0.posterior = B0.posterior[,,2:S], 
+              H.posterior = H.posterior[,3:S+1]))
   }
+```
 
-# Impulse response functions
+```{r RW SV baseline model data}
+set.seed(2024)
+RW1 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
+RW2 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
+RW  <- cbind(RW1, RW2)
+
+# Define the lag order and the number of iterations
+# ----------------------------------------------------------
+p           <- 1          # number of lags
+S           <- 1000       # number of posterior draws
+
+# Create Y and X matrices
+# ----------------------------------------------------------
+Y           <- RW[(p+1):nrow(RW), ]
+X           <- matrix(1, nrow(Y), 1)
+for (i in 1:p){
+  X         <- cbind(X, RW[(p+1):nrow(RW)-i, ])
+}
+T           <- nrow(Y)    # number of time periods
+N           <- ncol(Y)    # number of variables
+K           <- 1+p*N
+
+# Convert it into a matrix form
+Y           <- as.matrix(Y)
+X           <- as.matrix(X)
+
+# Define sign restrictions
+# ----------------------------------------------------------
+sign.restrictions=c(1, 1)
+```
+
+```{r RW SV baseline model posterior distribution}
+prior.parameters     <- prior.distribution(N, p)
+posterior.parameters <- SV.baseline.posterior(Y, X, S, prior.parameters)
+B.restricted         <- RW.identification(N, p, sign.restrictions, posterior.parameters)
+```
+
+The results below show the mean of the matrices $B_0$ and $B_+$.
+```{r RW SV baseline model Matrix B0}
+#| label: RW-SV-baseline-B0
+#| tbl-cap: Mean of $B_0$ Matrix
+knitr::kable(round(apply(B.restricted$B0.mean, 1:2, mean), 4))
+```
+
+```{r RW SV baseline model Matrix B+}
+#| label: RW-SV-baseline-B+
+#| tbl-cap: Mean of $B_+$ Matrix
+knitr::kable(round(apply(B.restricted$B1.mean, 1:2, mean), 4))
+```
+
+The results below show the mean of the matrices $A$ and $\Sigma$.
+```{r RW SV baseline model A posterior}
+#| label: RW-SV-baseline-A-posterior
+#| tbl-cap: Mean of the $A$ posterior
+A.posterior.RW.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.RW.baseline) <- c("y1", "y2")
+rownames(A.posterior.RW.baseline) <- c("constant", "lag of y1", "lag of y2")
+knitr::kable(A.posterior.RW.baseline, format = "html", escape = FALSE)
+```
+
+```{r RW SV baseline model Sigma posterior}
+#| label: RW-SV-baseline-Sigma-posterior
+#| tbl-cap: Mean of the $\Sigma$ posterior
+Sigma.posterior.RW.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
+rownames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
+knitr::kable(Sigma.posterior.RW.baseline)
+```
+
+Figure 5 provides a time series plot of posterior mean of $\sigma^2$. $\sigma^2$ oscillates around the value of 2100 over time.
+```{r RW SV baseline model H posterior}
+#| label: fig-baseline-H-posterior 
+#| fig-cap: Plot of posterior mean of stochastic volatility
+
+sigma2.mean.vec <- apply(posterior.parameters$H.posterior, 1, mean) 
+plot.ts(sigma2.mean.vec, 
+        main=expression(paste("Posterior Mean of ",sigma^2)),
+        ylab="", type='l', lwd=2, col="#3399CC")
+abline(h=mean(sigma2.mean.vec),lty=2)
+```
+
+
+## 4.4 Bayesian SVAR Model with *t*-distributed Errors and Stochastic Volatility
+
+### 4.4.1 Model Specification
+
+The reduced form representation in a matrix form is as follows:
+$$
+\begin{gather}
+Y = XA + E \\
+\\ E|X,\lambda \sim \mathcal{MN}_{T \times N}(0_{T \times N},\Sigma,\lambda\text{diag}(\sigma^2))
+\end{gather} 
+$$ 
+where the column-specific covariance matrix of error terms is set to be $\lambda \text{diag}(\sigma^2)$. 
+
+The parameter lambda is inverse gamma 2 distributed with scale parameter $s_{\lambda}$ and shape parameter $\nu_{\lambda}$. We assume fixed numbers for $s_{\lambda}$ and $\nu_{\lambda}$ in this study.
+$$
+\lambda \sim \mathcal{IG}2(s_{\lambda}, \nu_{\lambda})
+$$
+
+
+### 4.4.2 Estimation Procedure
+
+Then we have the likelihood function as: 
+$$
+\begin{gather}
+L(A,\Sigma|Y,X,\sigma^2, \lambda) \propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\lambda \text{diag}(\sigma^2))^{-\frac{N}{2}} \cdot \exp \left\{-\frac{1}{2} tr \left[ \Sigma^{-1}(Y-XA)'(\lambda \text{diag}(\sigma^2))^{-1}(Y-XA) \right] \right\} \\
+\end{gather} 
+$$
+
+Applying the same calculation procedure from the section 4.2.2, 
+$$
+\begin{align}
+p(A,\Sigma|Y,X,\sigma^2,\lambda) &\propto L(A,\Sigma|Y,X,\sigma^2,\lambda) \cdot p(A,\Sigma) \\
+\\ &\propto L(A,\Sigma|Y,X,\sigma^2,\lambda) \cdot p(A|\Sigma) \cdot p(\Sigma) \\
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\lambda\text{diag}(\sigma^2))^{-\frac{N}{2}} \cdot \exp \left\{-\frac{1}{2} tr[\Sigma^{-1} (Y-XA)' (\lambda\text{diag}(\sigma^2))^{-1} (Y-XA) ] \right\}
+\\ &\quad\times 
+\det(\Sigma)^{-\frac{N+k+\underline{\nu}+1}{2}} \cdot \exp \left\{-\frac{1}{2}tr[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} \cdot \exp \left\{ -\frac{1}{2}tr[\Sigma^{-1}\underline{S}] \right\} \\
+\\ &\propto \det{(\Sigma)}^{-\frac{T+N+K+\underline{\nu}+1}{2}} \cdot \det(\text{diag}(\sigma^2))^{-\frac{N}{2}} 
+\\ &\quad\times \exp \left\{-\frac{1}{2} tr \left[\Sigma^{-1} \left[(A-\hat{A})'X'(\lambda\text{diag}(\sigma^2))^{-1}X(A-\hat{A})+(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})+(Y-X\hat{A})'(\lambda\text{diag}(\sigma^2))^{-1}(Y-X\hat{A})+\underline{S} \right] \right] \right\} \\
+\\ &\propto \det(\Sigma)^{-\frac{T+N+K+\underline{\nu}+1}{2}} \cdot \det(\lambda\text{diag}(\sigma^2))^{-\frac{N}{2}} 
+\\ &\quad\times \exp \left\{-\frac{1}{2} tr[\Sigma^{-1}(Y'(\lambda\text{diag}(\sigma^2))^{-1}Y - 2A'X'(\lambda\text{diag}(\sigma^2))^{-1}Y + A'X'(\lambda\text{diag}(\sigma^2))^{-1}XA + A'\underline{V}^{-1}A -2A'\underline{V}^{-1}\underline{A} + \underline{A}'\underline{V}^{-1}\underline{A} + \underline{S})] \right\}
+\end{align}
+$$
+
+$$
+\begin{align}
+\overline{V} &= (X'(\lambda\text{diag}(\sigma^2))^{-1}X + \underline{V}^{-1})^{-1} 
+\\ \overline{A} &= \overline{V}(X'(\lambda\text{diag}(\sigma^2))^{-1}Y + \underline{V}^{-1}\underline{A}) 
+\\ \overline{S} &= \underline{S} + Y'(\lambda\text{diag}(\sigma^2))^{-1}Y + \underline{A}'\underline{V}^{-1}\underline{A} - \overline{A}'\overline{V}^{-1}\overline{A}
+\\ \overline{\nu} &= T + \underline{\nu} 
+\end{align}
+$$
+The **conditional posterior distribution of** $\lambda$ is derived as follows:
+$$
+\begin{align}
+p(\lambda|Y,X,A,\Sigma,\sigma^2) &\propto L(A,\Sigma|Y,X,\sigma^2,\lambda) \cdot p(\lambda) \\
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\lambda \text{diag}(\sigma^2))^{-\frac{N}{2}} \cdot
+\exp \left\{-\frac{1}{2} tr[\Sigma^{-1} (Y-XA)' (\lambda \text{diag}(\sigma^2))^{-1} (Y-XA)] \right\}
+\\ &\quad\times \lambda^{-\frac{\underline{\nu_{\lambda}}+2}{2}} \cdot 
+\exp \left\{-\frac{1}{2}\frac{\underline{s_{\lambda}}}{\lambda} \right\} \\
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\text{diag}(\sigma^2))^{-\frac{N}{2}} \cdot 
+\exp \left\{-\frac{1}{2}\frac{1}{\lambda} tr[\Sigma^{-1}(Y-XA)' \text{diag}(\sigma^2)^{-1} (Y-XA)] \right\} \\
+&\quad\times \lambda^{-\frac{TN}{2}} \cdot \lambda^{-\frac{\underline{\nu_{\lambda}}+2}{2}} \cdot 
+\exp \left\{-\frac{1}{2}\frac{\underline{s_{\lambda}}}{\lambda} \right\} \\
+\\ &\propto \det(\Sigma)^{-\frac{T}{2}} \cdot \det(\text{diag}(\sigma^2))^{-\frac{N}{2}} \cdot \lambda^{-\frac{TN+\underline{\nu_{\lambda}}+2}{2}} \cdot \exp \left\{-\frac{1}{2}\frac{1}{\lambda} [tr(\Sigma^{-1}(Y-XA)' \text{diag}(\sigma^2)^{-1} (Y-XA)) + \underline{s_{\lambda}}] \right\}
+\end{align}
+$$
+$$
+\begin{align}
+p(\lambda|Y,X,A,\Sigma,\sigma^2) = \mathcal{IG}2(\overline{s_{\lambda}},\overline{\nu_{\lambda}})
+\end{align}
+$$
+and the parameters of the posterior distribution is:
+$$
+\begin{align}
+\overline{s_{\lambda}} &= tr[\Sigma^{-1}(Y-XA)' \text{diag}(\sigma^2)^{-1} (Y-XA)] + \underline{s_{\lambda}} \\
+\overline{\nu_{\lambda}} &= \underline{\nu_{\lambda}} + TN 
+\end{align}
+$$
+
+### 4.4.3 Algorithm
+
+#### **Gibbs Sampler**
+
+Using the parameter of the joint posterior distribution $\overline{A}$, $\overline{V}$,$\overline{S}$, $\overline{\nu}$ above, we obtain a sample of $S$ draws from the posterior distribution.
+
+Initialise $h$ at $h_t^{(0)}$ and $\lambda$ at $\lambda^{(0)}$.
+
+At each iteration $s$ where $s$ goes from 1 to $S$,
+
+1. Draw $\Sigma^{(s)} \sim P(\Sigma|Y,X,\sigma^{2(s-1)},\lambda^{(s-1)})$ from the $\mathcal{IW}_N(\overline{S},\overline{\nu})$ distribution using $\sigma^{2(s-1)}$ and $\lambda^{(s-1)}$. For $s$ = 1, use the initialised value $h_t^{(0)}$ and $\lambda^{(0)}$.
+2. Draw $A^{(s)} \sim P(A|Y,X,\Sigma^{(s)},\sigma^{2(s-1)},\lambda^{(s-1)})$ from the $\mathcal{MN}_{K \times N}(\overline{A},\Sigma^{(s)}, \overline{V})$ distribution using the draws $\Sigma^{(s)}$, $\sigma^{2(s-1)}$ and $\lambda^{(s-1)}$.
+3. Draw $\lambda^{(s)} \sim P(\lambda|Y,X,A^{(s)},\Sigma^{(s)},\sigma^{2(s-1)})$ from $\mathcal{IG}2(\overline{S_{\lambda}},\overline{\nu_{\lambda}})$ distribution using the draws $A^{(s)}$, $\Sigma^{(s)}$ and $\sigma^{2(s-1)}$. 
+4. Draw $h_t^{(0)}$.
+
+Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}} , \sigma^{2(s)} , \lambda^{(s)}\right\}^{S}_{s=1}$.
+
+```{r SV extended model posterior distribution function, echo=TRUE}
+#| code-fold: true
+#| code-summary: "See R code"
+SV.extended.posterior <- function(Y, X, S, prior.distribution){
+  
+  N <- ncol(Y)
+  K <- ncol(X)
+  T <- nrow(Y)
+  
+  A.prior <- prior.distribution$A.prior
+  V.prior <- prior.distribution$V.prior
+  S.prior <- prior.distribution$S.prior
+  nu.prior <- prior.distribution$nu.prior
+  s.prior.lambda   <- 5    # assume that it is fixed
+  nu.prior.lambda  <- 5    # assume that it is fixed
+  lambda   <- s.prior.lambda/rchisq(1, nu.prior.lambda)
+
+  Sigma.posterior   <- array(NA, c(N,N,S))
+  A.posterior       <- array(NA, c(K,N,S))
+  H.posterior       <- array(NA, c(T, S+1))
+  B0.posterior      <- array(NA, c(N,N,S))
+  B1.posterior      <- array(NA, c(N,K,S))
+  
+  # Initialise h0
+  H.posterior[,1]     <- matrix(1, T, 1) 
+  HH                  <- 2*diag(T)
+  mgcv::sdiag(HH, -1) <- -1
+  mgcv::sdiag(HH, 1)  <- -1
+  nu.bar              <- nrow(Y) + nu.prior
+  
+  # Define priors for the SV model
+  priors = list(HH = HH,
+                h0.m = 0,
+                h0.v = 1,
+                sigmav.s = 1,
+                sigmav.nu = 1)
+  
+  for (s in 1:S) {
+    
+    # Posterior distribution
+    ############################################################
+    # Specify the matrix normal-inverse Wishart posterior parameters
+    # ----------------------------------------------------------
+    V.bar.inv   <- t(X)%*%diag(1/H.posterior[,s])%*%X + diag(1/diag(V.prior))
+    V.bar       <- solve(V.bar.inv)
+    A.bar       <- V.bar%*%(t(X)%*%diag(1/H.posterior[,s])%*%Y + diag(1/diag(V.prior))%*%A.prior)
+    S.bar       <- S.prior + t(Y)%*%diag(1/H.posterior[,s])%*%Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior-t(A.bar)%*%V.bar.inv%*%A.bar
+    S.bar.inv   <- solve(S.bar)
+    
+    # Draw Posterior distribution
+    # ----------------------------------------------------------
+    ## Draw from the Reduced Form
+    ### Draw Sigma from the inverse Wishart distribution
+    Sigma.posterior.inv   <- rWishart(1, df=nu.bar, Sigma=S.bar.inv)[,,1]
+    Sigma.posterior[,,s]  <- solve(Sigma.posterior.inv)
+    
+    ### Draw A from matrix-variate normal distribution
+    A.posterior[,,s]      <- matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.bar), sigma=Sigma.posterior[,,s]%x%V.bar), ncol=N)
+    
+    ## Draw from the Structural Form
+    ### Draw B0
+    cholSigma.s           <- chol(Sigma.posterior[,,s])
+    B0.posterior[,,s]     <- solve(t(cholSigma.s)) 
+    
+    ### Draw Bplus
+    B1.posterior[,,s]     <- B0.posterior[,,s]%*%t(A.posterior[,,s])
+    
+    ## Draw H from SVcommon.Gibbs.iteration function
+    if (s == 1){  # initialise input arguments 
+        aux = list( 
+              Y             = Y,
+              X             = X,
+              H             = matrix(1,T,1),
+              h0            = 0,
+              sigma.v2      = 1,
+              s             = matrix(1,T,1),
+              Sigma         = Sigma.posterior[,,s],
+              A             = A.posterior[,,s],
+              sigma2        = matrix(1,T,1))
+        
+    }else{  # update input arguments  
+      aux = list(
+                Y           = Y,
+                X           = X,
+                H           = tmp$H,
+                h0          = tmp$h0,
+                sigma.v2    = tmp$sigma.v2,
+                s           = tmp$s,
+                Sigma       = Sigma.posterior[,,s],
+                A           = A.posterior[,,s],
+                sigma2      = tmp$sigma2)
+      }
+    
+    tmp <- SVcommon.Gibbs.iteration(aux, priors)
+    H.posterior[, s + 1] <- as.matrix(tmp$sigma2)
+    }
+  
+  return(list(Sigma.posterior = Sigma.posterior[,,2:S], 
+              A.posterior = A.posterior[,,2:S], 
+              B1.posterior = B1.posterior[,,2:S], 
+              B0.posterior = B0.posterior[,,2:S], 
+              H.posterior = H.posterior[,3:S+1]))
+  }
+```
+
+```{r RW SV extended model data}
+set.seed(2024)
+RW1 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
+RW2 <- arima.sim(model=list(order=c(0, 1, 0)), n=1000, mean=0, sd=1)
+RW  <- cbind(RW1, RW2)
+
+# Define the lag order and the number of iterations
+# ----------------------------------------------------------
+p           <- 1          # number of lags
+S           <- 1000       # number of posterior draws
+
+# Create Y and X matrices
+# ----------------------------------------------------------
+Y           <- RW[(p+1):nrow(RW), ]
+X           <- matrix(1, nrow(Y), 1)
+for (i in 1:p){
+  X         <- cbind(X, RW[(p+1):nrow(RW)-i, ])
+}
+T           <- nrow(Y)    # number of time periods
+N           <- ncol(Y)    # number of variables
+K           <- 1+p*N
+
+# Convert it into a matrix form
+Y           <- as.matrix(Y)
+X           <- as.matrix(X)
+
+# Define sign restrictions
+# ----------------------------------------------------------
+sign.restrictions=c(1, 1)
+```
+
+```{r RW SV extended model posterior distribution}
+prior.parameters     <- prior.distribution(N, p)
+posterior.parameters <- SV.extended.posterior(Y, X, S, prior.parameters)
+B.restricted         <- RW.identification(N, p, sign.restrictions, posterior.parameters)
+B.restricted
+```
+
+```{r RW SV extended model Matrix B0}
+#| label: RW-SV-extended-B0
+#| tbl-cap: Mean of $B_0$ Matrix
+knitr::kable(round(apply(B.restricted$B0.mean, 1:2, mean), 4))
+```
+
+```{r RW SV extended model Matrix B+}
+#| label: RW-SV-extended-B+
+#| tbl-cap: Mean of $B_+$ Matrix
+knitr::kable(round(apply(B.restricted$B1.mean, 1:2, mean), 4))
+```
+
+The results below show the mean of the matrices $A$ and $\Sigma$.
+```{r RW SV extended model A posterior}
+#| label: RW-SV-extended-A-posterior
+#| tbl-cap: Mean of the $A$ posterior
+A.posterior.RW.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.RW.baseline) <- c("y1", "y2")
+rownames(A.posterior.RW.baseline) <- c("constant", "lag of y1", "lag of y2")
+knitr::kable(A.posterior.RW.baseline, format = "html", escape = FALSE)
+```
+
+```{r RW SV extended model Sigma posterior}
+#| label: RW-SV-extended-Sigma-posterior
+#| tbl-cap: Mean of the $\Sigma$ posterior
+Sigma.posterior.RW.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
+rownames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
+knitr::kable(Sigma.posterior.RW.baseline)
+```
+
+```{r RW SV extended model H posterior}
+#| label: fig-extended-H-posterior 
+#| fig-cap: Plot of $A$ and $\Sigma$ posterior draws -Baseline model
+
+sigma2.mean.vec <- apply(posterior.parameters$H.posterior, 1, mean) 
+plot.ts(sigma2.mean.vec, 
+        main=expression(paste("Posterior Mean of ",sigma^2)),
+        ylab="", type='l', lwd=2, col="#3399CC")
+abline(h=mean(sigma2.mean.vec),lty=2)
+```
+
+
+# 5. Empirical Results
+
+## 5.1 Standard Bayesian SVAR model
+
+```{r colours for impulse response function}
+# Define colors
 ############################################################
-# Transform B0 matrices to B
-# Initialise arrays to store posterior draws
-B.posterior <- array(NA, c(N,N,S))
+mcxs1  <- "#05386B"
+mcxs2  <- "#379683"
+mcxs3  <- "#5CDB95"
+mcxs4  <- "#8EE4AF"
+mcxs5  <- "#EDF5E1"
   
-for (s in 1:S){
-  B.posterior[,,s]  <- solve(B0.store[,,s])
-  }
+mcxs1.rgb    <- col2rgb(mcxs1)
+mcxs1.shade1 <- rgb(mcxs1.rgb[1],mcxs1.rgb[2],mcxs1.rgb[3], alpha=120, maxColorValue=255)
+mcxs2.rgb    <- col2rgb(mcxs2)
+mcxs2.shade1 <- rgb(mcxs2.rgb[1],mcxs2.rgb[2],mcxs2.rgb[3], alpha=120, maxColorValue=255)
+mcxs3.rgb    <- col2rgb(mcxs3)
+mcxs3.shade1 <- rgb(mcxs3.rgb[1],mcxs3.rgb[2],mcxs3.rgb[3], alpha=120, maxColorValue=255)
+mcxs4.rgb    <- col2rgb(mcxs4)
+mcxs4.shade1 <- rgb(mcxs4.rgb[1],mcxs4.rgb[2],mcxs4.rgb[3], alpha=120, maxColorValue=255)
+```
 
-# Initialise arrays to store posterior draws
-IRF.posterior       <- array(NA, c(N,N,h+1,S))
-IRF.inf.posterior   <- array(NA, c(N,N,S))
-J                   <- cbind(diag(N), matrix(0,N,N*(p-1)))
+```{r identification function}
+#| code-fold: true
+#| code-summary: "See R code"
+identification <- function(N, p, sign.restrictions, posterior.distribution){
   
-for (s in 1:S){
+  A.posterior <- posterior.distribution$A.posterior
+  Sigma.posterior <- posterior.distribution$Sigma.posterior
+  B0.posterior <- posterior.distribution$B0.posterior
+  B1.posterior <- posterior.distribution$B1.posterior
+  
+  S <- dim(A.posterior)[3]
+  
+  # Identification via sign restrictions
+  ############################################################
+  # Initialise arrays to store Q identified estimates
+  i.vec <- c()
+  Q.store      <- array(NA, c(N,N,S))
+  B0.store     <- array(NA, c(N,N,S))
+  B1.store     <- array(NA, c(N,K,S))
+  B0.inv.store <- array(NA, c(N,N,S))
+  
+  # Generate corresponding R matrix
+  R <- diag(sign.restrictions)
+  
+  for (s in 1:S){
+    B0.tilde      <- B0.posterior[,,s]
+    B1.tilde      <- B1.posterior[,,s]
+    
+    sign.restrictions.do.not.hold = TRUE
+    i=1
+    while (sign.restrictions.do.not.hold){
+      X           <- matrix(rnorm(N*N), N, N)         
+      QR          <- qr(X, tol=1e-10)
+      Q           <- qr.Q(QR, complete=TRUE)
+      R           <- qr.R(QR, complete=TRUE)
+      Q           <- t(Q%*%diag(sign(diag(R))))
+      B0          <- Q%*%B0.tilde                    
+      B1          <- Q%*%B1.tilde   
+      B0.inv      <- solve(B0)      
+      check       <- all(B0.inv[1,2]<0, B0.inv[2,2]>0, B0.inv[3,2]<0, B0.inv[4,2]>0)
+      
+      if (check){sign.restrictions.do.not.hold = FALSE}
+      i=i+1
+      }
+    
+    i.vec <- c(i.vec, i) 
+    Q.store[,,s]      <- Q
+    B0.store[,,s]     <- B0
+    B1.store[,,s]     <- B1
+    B0.inv.store[,,s] <- B0.inv
+    }
+
+  return(list(B0.store = B0.store,
+              B1.store  = B1.store,
+              B0.inv.store = B0.inv.store))
+  }
+```
+
+```{r}
+irf <- function(h, N, p, S, posterior.parameters, B.restricted){
+
+  A.posterior    <- posterior.parameters$A.posterior
+  B.posterior    <- B.restricted$B0.inv.store
+  N <- dim(A.posterior)[2]
+  S <- dim(A.posterior)[3]
+  
+  # Impulse response functions
+  ############################################################
+  # Initialise arrays to store posterior draws
+  #A.posterior        <- array(NA, c(K,N,S))
+  #B.posterior        <- array(NA, c(N,N,S))
+  IRF.posterior      <- array(NA, c(N,N,h+1,S))
+  IRF.inf.posterior  <- array(NA, c(N,N,S))
+  J                  <- cbind(diag(N), matrix(0,N,N*(p-1)))
+  
+  # Transform B0 matrices to B
+  #for (s in 1:S){
+  #B.posterior[,,s]  <- solve(B0.store[,,s])
+  #}
+  
+  for (s in 1:S){
   # Define A matrix in VAR(1) representation
   A.bold                     <- rbind(t(A.posterior[2:(1+N*p),,s]), cbind(diag(N*(p-1)), matrix(0,N*(p-1),N)))
   IRF.inf.posterior[,,s]     <- J%*%solve(diag(N*p)-A.bold)%*%t(J)%*%B.posterior[,,s]
@@ -1382,15 +1968,54 @@ for (s in 1:S){
       }
     }
   }
+  return(list(IRF.posterior = IRF.posterior,
+              IRF.inf.posterior = IRF.inf.posterior))
+}
+```
 
-library(HDInterval)
+```{r}
+irf.plot <- function(N, p, h, S, col, posterior.parameters, B.restricted){
 
+  A.posterior    <- posterior.parameters$A.posterior
+  B.posterior    <- B.restricted$B0.inv.store
+  N <- dim(A.posterior)[2]
+  S <- dim(A.posterior)[3]
+  
+  # Impulse response functions
+  ############################################################
+  # Initialise arrays to store posterior draws
+  #A.posterior        <- array(NA, c(K,N,S))
+  #B.posterior        <- array(NA, c(N,N,S))
+  IRF.posterior      <- array(NA, c(N,N,h+1,S))
+  IRF.inf.posterior  <- array(NA, c(N,N,S))
+  J                  <- cbind(diag(N), matrix(0,N,N*(p-1)))
+  
+  # Transform B0 matrices to B
+  #for (s in 1:S){
+  #B.posterior[,,s]  <- solve(B0.store[,,s])
+  #}
+  
+  for (s in 1:S){
+  # Define A matrix in VAR(1) representation
+  A.bold                     <- rbind(t(A.posterior[2:(1+N*p),,s]), cbind(diag(N*(p-1)), matrix(0,N*(p-1),N)))
+  IRF.inf.posterior[,,s]     <- J%*%solve(diag(N*p)-A.bold)%*%t(J)%*%B.posterior[,,s]
+  A.bold.power               <- A.bold
+  
+  for (i in 1:(h+1)){
+    if (i==1){
+      IRF.posterior[,,i,s]      <- B.posterior[,,s]
+      } else {
+        IRF.posterior[,,i,s]    <- J%*%A.bold.power%*%t(J)%*%B.posterior[,,s]
+        A.bold.power            <- A.bold.power%*%A.bold
+      }
+    }
+  }
 # Impulse response functions plots
 ############################################################
 IRF.posterior.mps   <- IRF.posterior[,2,,]
 IRFs.k1             <- apply(IRF.posterior.mps,1:2,median)
 IRFs.inf.k1         <- apply(IRF.posterior.mps,1,mean)
-rownames(IRFs.k1)   <- colnames(variables)
+rownames(IRFs.k1)   <- c("GDP", "Interest rates", "Consumer price index", "Exchange rates", "Stock prices", "Stock price volatility")
 
 IRFs.k1.hdi    <- apply(IRF.posterior.mps, 1:2, hdi, credMass=0.68)
 hh             <- 1:(h+1)
@@ -1405,177 +2030,133 @@ for (n in 1:N){
       axis(1, c(1,5,9,13,17,21), c("0","1yr","2yr","3yr","4yr","5yr"))
       }
   axis(2, c(ylims[1], 0, ylims[2]), round(c(ylims[1], 0, ylims[2]), 3))
-  polygon(c(hh,(h+1):1), c(IRFs.k1.hdi[1,n,hh], IRFs.k1.hdi[2,n,(h+1):1]), col=mcxs1.shade1, border=mcxs1.shade1)
+  polygon(c(hh,(h+1):1), c(IRFs.k1.hdi[1,n,hh], IRFs.k1.hdi[2,n,(h+1):1]), col=col, border=col)
   abline(h=0)
   lines(hh, IRFs.k1[n,hh], lwd=2, col="darkblue")
   }
+}
+```
+
+```{r baseline model data}
+# Convert the data type
+variables <- data.frame(lapply(variables, as.numeric))
+
+# Define the lag order and the number of iterations
+# ----------------------------------------------------------
+p           <- 4          # number of lags
+S           <- S.draws    # number of posterior draws
+h           <- 20         # forecast horizon
+
+# Create Y and X matrices
+# ----------------------------------------------------------
+Y           <- variables[(p+1):nrow(variables), ]
+X           <- matrix(1, nrow(Y), 1)
+for (i in 1:p){
+  X         <- cbind(X, variables[(p+1):nrow(variables)-i, ])
+}
+T           <- nrow(Y)    # number of time periods
+N           <- ncol(Y)    # number of variables
+K           <- 1+p*N
+
+# Convert it into a matrix form
+Y           <- as.matrix(Y)
+X           <- as.matrix(X)
+
+# Define sign restrictions
+# ----------------------------------------------------------
+sign.restrictions=c(-1, 1, -1, 1, 0, 0)
+```
+
+```{r baseline model posterior distribution}
+prior.parameters     <- prior.distribution(N, p)
+posterior.parameters <- baseline.posterior(X, Y, N, p, S, prior.parameters)
+B.restricted         <- identification(N, p, sign.restrictions, posterior.parameters)
+```
+
+The result below shows the mean of $B_0$ inverse matrix. The sign restrictions imposed in the second column is shown in the table.
+```{r baseline model Matrix B0 inverse}
+#| label: Baseline-Model-B0-inverse
+#| tbl-cap: Mean of $B_0$ inverse Matrix
+knitr::kable(round(apply(B.restricted$B0.inv.store, 1:2, mean), 4))
+```
+
+```{r baseline model A posterior}
+#| label: Baseline-Model-A-posterior
+#| tbl-cap: Mean of the $A$ posterior
+A.posterior.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.baseline) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
+knitr::kable(A.posterior.baseline, format = "html", escape = FALSE)
+```
+
+```{r baseline model Sigma posterior}
+#| label: Baseline-Model-Sigma-posterior
+#| tbl-cap: Mean of the $\Sigma$ posterior
+Sigma.posterior.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.baseline) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
+knitr::kable(Sigma.posterior.baseline, format = "html", escape = FALSE)
+```
+
+```{r baseline model A and Sigma posterior}
+#| label: fig-baseline-posteriors 
+#| fig-cap: Plot of $A$ and $\Sigma$ posterior draws -Baseline model
+par(mfrow=c(2,2),mar=c(2,2,2,2))
+plot(posterior.parameters$A.posterior[2,1,],type='l',col="#6600CC",ylab="",xlab="",main=expression(A[21]), lwd = 0.1)
+plot(posterior.parameters$A.posterior[3,2,],type='l',col="#9900CC",ylab="",xlab="",main=expression(A[32]), lwd = 0.1)
+plot(posterior.parameters$Sigma.posterior[1,1,],type='l',col="#0066CC",ylab="",xlab="",main=expression(Sigma[11]), lwd = 0.1)
+plot(posterior.parameters$Sigma.posterior[2,2,],type='l',col="#0099CC",ylab="",xlab="",main=expression(Sigma[22]), lwd = 0.1)
+```
+
+Impulse response functions of the baseline model show a positive monetary policy shock on variables. The shaded area represents 68% of the credibility interval. In the short run, GDP decreases gradually, but a year after the shock, GDP decreases at a steeper rate. In the short run, interest rates immediately respond to the shock and normalised after five years of the shock. The consumer price index slightly decreases in the short run. The exchange rate has a positive effect in the short and long run. The stock price has a positive impact in the short run, but it does not have a positive effect in the long run. GDP is the only variable that is statistically different from zero.
+
+```{r baseline model irf}
+#| label: fig-IRF-standard
+#| fig-cap: Plot of impulse response functions to monetary policy shock (Standard model)
+irf.plot(N, p, h, S, col=mcxs1.shade1, posterior.parameters, B.restricted)
 ```
 
 
-## 5.2 Bayesian SVAR Model with *t*-distributed Innovations
+## 5.2 Bayesian SVAR Model with *t*-distributed Errors
 
-```{r, extended model posterior distribution}
+```{r extended model data}
+variables <- data.frame(lapply(variables, as.numeric))
+# Define the lag order and the number of iterations
+# ----------------------------------------------------------
+p           <- 4          # number of lags
+S           <- S.draws    # number of posterior draws
+h           <- 20         # forecast horizon
 
-extended <- function(data, sign.restrictions, p, S) {
-  
-  # Define the lag order and the number of iterations
-  ############################################################
-  # p                       # number of lags (data frequency (quarter))
-  # S                       # number of posterior draws
+# Create Y and X matrices
+# ----------------------------------------------------------
+Y           <- variables[(p+1):nrow(variables), ]
+X           <- matrix(1, nrow(Y), 1)
+for (i in 1:p){
+  X         <- cbind(X, variables[(p+1):nrow(variables)-i, ])
+}
+T           <- nrow(Y)    # number of time periods
+N           <- ncol(Y)    # number of variables
+K           <- 1+p*N
 
-  # Create Y and X matrices
-  ############################################################
-  Y           <- data[(p+1):nrow(data), ]
-  X           <- matrix(1, nrow(Y), 1)
-  for (i in 1:p){
-    X         <- cbind(X, data[(p+1):nrow(data)-i, ])
-    }
-  
-  T           <- nrow(Y)    # number of time periods
-  N           <- ncol(Y)    # number of variables
-  K           <- 1+p*N
-  
-  # Convert it into a matrix form
-  Y           <- as.matrix(Y)
-  X           <- as.matrix(X)
-  
-  # Calculate the MLE
-  ############################################################
-  A.hat       <- solve(t(X)%*%X)%*%t(X)%*%Y                
-  Sigma.hat   <- t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)
-  
-  # Specify prior distribution parameters
-  ############################################################
-  kappa.1     <- 1
-  kappa.2     <- 100
-  
-  A.prior           <- matrix(0, nrow(A.hat), ncol(A.hat))
-  A.prior[2:(N+1),] <- diag(N)
-  V.prior           <- diag(c(kappa.2, kappa.1*((1:p)^(-2))%x%rep(1,N)))
-  S.prior           <- diag(diag(Sigma.hat))
-  nu.prior          <- N+1
-  s.prior.lambda    <- 5     # assume that it is fixed
-  nu.prior.lambda   <- 5     # assume that it is fixed
-  lambda            <- s.prior.lambda/rchisq(1, nu.prior.lambda)
-  
-  # Initialise arrays to store posterior draws
-  Sigma.posterior   <- array(NA, c(N,N,S))
-  A.posterior       <- array(NA, c(K,N,S))
-  lambda.posterior  <- rep(NA, S)
-  B0.posterior      <- array(NA, c(N,N,S))
-  B1.posterior      <- array(NA, c(N,K,S))
-  
-  for (s in 1:S){
-    
-    # Specify the matrix normal-inverse Wishart posterior parameters
-    ############################################################
-    V.bar.inv   <- t(X)%*%X/lambda + diag(1/diag(V.prior))
-    V.bar       <- solve(V.bar.inv)
-    A.bar       <- V.bar%*%(t(X)%*%Y/lambda + diag(1/diag(V.prior))%*%A.prior)
-    nu.bar      <- nrow(Y) + nu.prior
-    S.bar       <- S.prior + t(Y)%*%Y/lambda + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
-    S.bar.inv   <- solve(S.bar)
-    
-    # Draw Posterior distribution
-    ############################################################
-    ## Draw from the Reduced Form
-    ### Draw Sigma from the inverse Wishart distribution
-    Sigma.posterior.inv   <- rWishart(1, df=nu.bar, Sigma=S.bar.inv)[,,1]
-    Sigma.posterior[,,s]  <- solve(Sigma.posterior.inv)
-    
-    ### Draw A from matrix-variate normal distribution
-    A.posterior[,,s]      <- matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.bar), sigma=Sigma.posterior[,,s]%x%V.bar), ncol=N)
-    
-    ### Draw lambda from inverse gamma 2 distribution
-    s.posterior.lambda    <- sum(diag(Sigma.posterior.inv%*%t(Y-X%*%A.posterior[,,s])%*%(Y-X%*%A.posterior[,,s]))) + s.prior.lambda
-    nu.posterior.lambda   <- nrow(Y)*N + nu.prior.lambda
-    lambda   <- s.posterior.lambda/rchisq(1, nu.posterior.lambda)
-    lambda.posterior[s]   <- lambda
-    
-    ## Draw from the Structural Form
-    ### Draw B0
-    cholSigma.s        <- chol(Sigma.posterior[,,s])
-    B0.posterior[,,s]  <- solve(t(cholSigma.s))
-    
-    ### Draw Bplus
-    B1.posterior[,,s]  <- B0.posterior[,,s]%*%t(A.posterior[,,s])
-    }
-  
-  # Identification via sign restrictions 
-  ############################################################
-  # Generate corresponding R matrix
-  R <- diag(sign.restrictions)
-  
-  # Initialise arrays to store Q identified estimates
-  i.vec <- c()
-  Q.store      <- array(NA, c(N,N,S))
-  B0.store     <- array(NA, c(N,N,S))
-  B1.store     <- array(NA, c(N,K,S))
-  
-  for (s in 1:S){
-    B0.tilde      <- B0.posterior[,,s]
-    B1.tilde      <- B1.posterior[,,s]
-    
-    sign.restrictions.do.not.hold = TRUE
-    i=1
-    while (sign.restrictions.do.not.hold){
-      X           <- matrix(rnorm(N*N), N, N)         
-      QR          <- qr(X, tol=1e-10)
-      Q           <- qr.Q(QR, complete=TRUE)
-      R           <- qr.R(QR, complete=TRUE)
-      Q           <- t(Q %*% diag(sign(diag(R))))
-      B0          <- Q%*%B0.tilde                    
-      B1          <- Q%*%B1.tilde                   
-      B0.inv      <- solve(B0)      
-      check       <- all(B0[1,1]<0, B0[2,2]>0, B0[3,3]<0, B0[4,4]>0)
-      
-      if (check){sign.restrictions.do.not.hold = FALSE}
-      i=i+1
-      }
-    
-    i.vec <- c(i.vec, i) 
-    Q.store[,,s]   <- Q
-    B0.store[,,s]  <- B0
-    B1.store[,,s]  <- B1
-    }
-  
-  B0.mean     <- apply(B0.store, 1:2, mean)  
-  B1.mean     <- apply(B1.store, 1:2, mean)
-  
-  return(list(B0.mean = B0.mean, 
-              B1.mean = B1.mean, 
-              A.posterior = A.posterior, 
-              Sigma.posterior = Sigma.posterior,
-              lambda.posterior = lambda.posterior))
-  }
+# Convert it into a matrix form
+Y           <- as.matrix(Y)
+X           <- as.matrix(X)
+
+# Define sign restrictions
+# ----------------------------------------------------------
+sign.restrictions=c(-1, 1, -1, 1, 0, 0)
 ```
 
-```{r extended model result}
-extended <- extended(data=variables, sign.restrictions=c(-1, 1, -1, 1, 0, 0), p=4, S=50000)
+```{r extended model posterior distribution}
+prior.parameters     <- prior.distribution(N, p)
+posterior.parameters <- extended.posterior(X, Y, N, S, p, prior.parameters)
+B.restricted         <- identification(N, p, sign.restrictions, posterior.parameters)
 ```
 
-```{r extended model Matrix B0}
-#| label: table - Extended Model B0
-#| tbl-cap: Mean of the Matrix B[0]
-knitr::kable(round(apply(extended$B0.mean, 1:2, mean), 4))
-```
-
-```{r extended model Matrix B+}
-#| label: table - Extended Model B+
-#| tbl-cap: Mean of the Matrix B[+]
-knitr::kable(round(apply(extended$B1.mean, 1:2, mean), 4))
-```
-
-Impulse response functions of the t-distributed innovation model show a positive monetary policy shock on variables. In the short run, interest rates immediately respond to the shock and normalised around five years after the shock. The consumer price index slightly decreases in the short run. There are no significant effects on GDP, stock prices, or stock price volatility. Consumer price index and exchange rates decrease slightly, but they are also not significant. 
-
-```{r extended model irf, echo=TRUE}
-#| code-fold: true
-#| code-summary: "See R code"
-
+```{r extended model posterior irf function}
+extended.irf <- function(data, sign.restrictions, p, h, S) {
 # Define the lag order and the number of iterations
 ############################################################
 p           <- 4          # number of lags (data frequency (quarter))
-S           <- 50000      # number of posterior draws
+S           <- S.draws    # number of posterior draws
 h           <- 20         # forecast horizon
 
 # Create Y and X matrices
@@ -1613,6 +2194,8 @@ s.prior.lambda    <- 5   # assume that it is fixed
 nu.prior.lambda   <- 5   # assume that it is fixed
 lambda            <- s.prior.lambda/rchisq(1, nu.prior.lambda)
 
+# Draw Posterior distribution
+############################################################
 # Initialise arrays to store posterior draws
 Sigma.posterior   <- array(NA, c(N,N,S))
 A.posterior       <- array(NA, c(K,N,S))
@@ -1643,7 +2226,7 @@ for (s in 1:S){
   
   ### Draw lambda from inverse gamma 2 distribution
   s.posterior.lambda    <- sum(diag(Sigma.posterior.inv%*%t(Y-X%*%A.posterior[,,s])%*%(Y-X%*%A.posterior[,,s]))) + s.prior.lambda
-  nu.posterior.lambda   <- nrow(Y)*N + nu.prior.lambda
+  nu.posterior.lambda   <- nrow(Y)*ncol(Y) + nu.prior.lambda
   lambda   <- s.posterior.lambda/rchisq(1, nu.posterior.lambda)
   lambda.posterior[s]   <- lambda
   
@@ -1658,16 +2241,16 @@ for (s in 1:S){
   
 # Identification via sign restrictions 
 ############################################################
-# Generate corresponding R matrix
-sign.restrictions <- c(-1, 1, -1, 1, 0, 0)
-R <- diag(sign.restrictions)
-  
 # Initialise arrays to store Q identified estimates
 i.vec <- c()
 Q.store      <- array(NA, c(N,N,S))
 B0.store     <- array(NA, c(N,N,S))
 B1.store     <- array(NA, c(N,K,S))
-  
+
+# Generate corresponding R matrix
+sign.restrictions <- c(-1, 1, -1, 1, 0, 0)
+R <- diag(sign.restrictions)
+
 for (s in 1:S){
   B0.tilde      <- B0.posterior[,,s]
   B1.tilde      <- B1.posterior[,,s]
@@ -1726,14 +2309,12 @@ for (s in 1:S){
     }
   }
 
-library(HDInterval)
-
 # Impulse response functions plots
 ############################################################
 IRF.posterior.mps   <- IRF.posterior[,2,,]
 IRFs.k1             <- apply(IRF.posterior.mps,1:2,median)
 IRFs.inf.k1         <- apply(IRF.posterior.mps,1,mean)
-rownames(IRFs.k1)   <- colnames(variables)
+rownames(IRFs.k1)   <- c("GDP", "Interest rates", "Consumer price index", "Exchange rates", "Stock prices", "Stock price volatility")
 
 IRFs.k1.hdi    <- apply(IRF.posterior.mps, 1:2, hdi, credMass=0.68)
 hh             <- 1:(h+1)
@@ -1752,14 +2333,126 @@ for (n in 1:N){
   abline(h=0)
   lines(hh, IRFs.k1[n,hh], lwd=2, col="darkblue")
   }
+}
 ```
 
-## 5.3 Bayesian SVAR Model with Common Stochastic Volatility
+Impulse response functions of the t-distributed innovation model show a positive monetary policy shock on variables. In the short run, interest rates immediately respond to the shock and normalise after five years. The consumer price index slightly decreases in the short run. There are no significant effects on GDP, stock prices, or stock price volatility. Consumer price index and exchange rates decrease slightly but are also insignificant. GDP is the only variable that is statistically different from zero. Note that the shaded area represents 68% credibility interval.
+
+```{r extended model irf}
+#| label: fig-IRF-t-error
+#| fig-cap: Plot of impulse response functions to monetary policy shock (t-distributed error model)
+extended.irf(data=variables, sign.restrictions=c(-1, 1, -1, 1, 0, 0), p=4, h=20, S=S.draws)
+```
+
+## 5.3 Bayesian SVAR Model with Stochastic Volatility
+
+```{r SV baseline model data}
+# Convert the data type
+variables <- data.frame(lapply(variables, as.numeric))
+
+# Define the lag order and the number of iterations
+# ----------------------------------------------------------
+p           <- 4          # number of lags
+S           <- S.draws    # number of posterior draws
+h           <- 20         # forecast horizon
+
+# Create Y and X matrices
+# ----------------------------------------------------------
+Y           <- variables[(p+1):nrow(variables), ]
+X           <- matrix(1, nrow(Y), 1)
+for (i in 1:p){
+  X         <- cbind(X, variables[(p+1):nrow(variables)-i, ])
+}
+T           <- nrow(Y)    # number of time periods
+N           <- ncol(Y)    # number of variables
+K           <- 1+p*N
+
+# Convert it into a matrix form
+Y           <- as.matrix(Y)
+X           <- as.matrix(X)
+
+# Define sign restrictions
+# ----------------------------------------------------------
+sign.restrictions=c(-1, 1, -1, 1, 0, 0)
+```
+
+```{r SV baseline model posterior distribution}
+prior.parameters     <- prior.distribution(N, p)
+posterior.parameters <- SV.baseline.posterior(Y, X, S, prior.parameters)
+B.restricted         <- identification(N, p, sign.restrictions, posterior.parameters)
+```
+
+The result below shows the mean of $B_0$ inverse matrix. The sign restrictions imposed in the second column is shown in the table.
+```{r SV baseline model Matrix B0 inverse}
+#| label: SV-Baseline-Model-B0-inverse
+#| tbl-cap: Mean of $B_0$ inverse Matrix
+knitr::kable(round(apply(B.restricted$B0.inv.store, 1:2, mean), 4))
+```
+
+```{r SV baseline model A posterior}
+#| label: SV-Baseline-Model-A-posterior
+#| tbl-cap: Mean of the $A$ posterior
+A.posterior.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.baseline) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
+knitr::kable(A.posterior.baseline, format = "html", escape = FALSE)
+```
+
+```{r SV baseline model Sigma posterior}
+#| label: SV-Baseline-Model-Sigma-posterior
+#| tbl-cap: Mean of the $\Sigma$ posterior
+Sigma.posterior.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.baseline) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
+knitr::kable(Sigma.posterior.baseline, format = "html", escape = FALSE)
+```
+
+```{r SV baseline model irf}
+#| label: fig-IRF-SV-standard
+#| fig-cap: Plot of impulse response functions to monetary policy shock (Standard model with Stochastic Volatility)
+irf.plot(N, p, h, S, col=mcxs3.shade1, posterior.parameters, B.restricted)
+```
 
 
+## 5.4 Bayesian SVAR Model with *t*-distributed Errors and Stochastic Volatility
+
+```{r SV extended model data}
+# Convert the data type
+variables <- data.frame(lapply(variables, as.numeric))
+
+# Define the lag order and the number of iterations
+# ----------------------------------------------------------
+p           <- 4          # number of lags
+S           <- S.draws    # number of posterior draws
+h           <- 20         # forecast horizon
+
+# Create Y and X matrices
+# ----------------------------------------------------------
+Y           <- variables[(p+1):nrow(variables), ]
+X           <- matrix(1, nrow(Y), 1)
+for (i in 1:p){
+  X         <- cbind(X, variables[(p+1):nrow(variables)-i, ])
+}
+T           <- nrow(Y)    # number of time periods
+N           <- ncol(Y)    # number of variables
+K           <- 1+p*N
+
+# Convert it into a matrix form
+Y           <- as.matrix(Y)
+X           <- as.matrix(X)
+
+# Define sign restrictions
+# ----------------------------------------------------------
+sign.restrictions=c(-1, 1, -1, 1, 0, 0)
+```
+
+```{r SV extended model posterior distribution}
+prior.parameters     <- prior.distribution(N, p)
+posterior.parameters <- SV.extended.posterior(Y, X, S, prior.parameters)
+B.restricted         <- identification(N, p, sign.restrictions, posterior.parameters)
+```
 
 
 # 6. Conclusion
 
+This research examines the impact of monetary policy shocks on stock price volatility in the Australian market. A SVAR model identified using sign restrictions. The findings from four models indicate a small negative influence of positive monetary policy shocks on GDP. The outcomes are promising for the use of Bayesian methods with volatility data, validating the use of heteroskedastic non-normal models for RW data. The study demonstrates the flexibility of Bayesian techniques for adapting to various modeling scenarios, suggesting that further enhancements and explorations of this approach are valuable for future studies.
 
 ## References {.unnumbered}
