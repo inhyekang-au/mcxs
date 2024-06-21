@@ -38,9 +38,10 @@ library(gridExtra)
 library(kableExtra)
 ```
 
-```{r}
-# Set up the global variable
-S.draws  <- 10000
+```{r global variables}
+# Set up global variables
+S.draws  <- 50000
+p.lags   <- 4        # data frequency or data frequency + 1
 ```
 
 # 2. Data
@@ -61,18 +62,12 @@ Table 1 shows the data sources.
 ```{r sources}
 #| label: tbl-Data-source
 #| tbl-cap: Data source
-source <- data.frame(
-  c('GDP', 'Interest rates', 'Consumer Price Index', 'Exchange rates', 'Stock prices'),  
-  c('GGDPCVGDP', 'FIRMMCRTD', 'A2325846C', 'FXRUSD', '^AORD'),
-  c('RBA', 'RBA', 'ABS', 'RBA', 'Yahoo Finance'),
-  stringsAsFactors=FALSE  
-)
+source <- data.frame(c('GDP', 'Interest rates', 'Consumer Price Index', 'Exchange rates', 'Stock prices'), c('GGDPCVGDP', 'FIRMMCRTD', 'A2325846C', 'FXRUSD', '^AORD'), c('RBA', 'RBA', 'ABS', 'RBA', 'Yahoo Finance'), stringsAsFactors=FALSE)
 colnames(source) <- c("Variable", "Code", "Data source")
-
 knitr::kable(source)
 ```
 
-```{r download the variables}
+```{r download variables}
 # Download seasonally adjusted quarterly Real GDP ($ million AUD)
 gdp_download <- readrba::read_rba(series_id = "GGDPCVGDP")   # Real GDP
 gdp_tmp <- xts::xts(gdp_download$value, gdp_download$date)
@@ -197,7 +192,6 @@ summary_df$Variable <- rownames(summary_df)
 summary_df$Unit <- units[summary_df$Variable]
 summary_df <- summary_df[, c("Variable", "Unit", "Mean", "SD", "Min", "Max", "n")]
 rownames(summary_df) <- NULL
-
 knitr::kable(summary_df, digits=3)
 ```
 
@@ -264,7 +258,7 @@ The autocorrelation function (ACF) plots in Figure 3 shows that all the variable
 ```{r ACF, fig.width=7.5, fig.height=7}
 #| label: fig-ACF
 #| fig-cap: Plots of autocorrelation functions
-par(mfrow=c(3, 2))
+par(mfrow=c(3,2))
 for (i in 1:ncol(variables)){
   Acf(variables[, i], main=colnames(variables)[i])
 }
@@ -274,7 +268,7 @@ The partial autocorrelation function (PACF) plots in Figure 4 shows that the par
 ```{r PACF, fig.width=7.5, fig.height=7}
 #| label: fig-PACF
 #| fig-cap: Plots of partial autocorrelation functions
-par(mfrow=c(3, 2))
+par(mfrow=c(3,2))
 for (i in 1:ncol(variables)){
   Pacf(variables[, i], main=colnames(variables)[i])
 }
@@ -312,7 +306,6 @@ for (i in 1: ncol(variables)){
   adf[i, "Stationarity"]   <- ifelse(test_statistic < critical_value_1pct, "Yes", "No")
   #adf[i, "Lag order"]     <- lag_order
 }
-
 knitr::kable(adf)
 ```
 
@@ -320,8 +313,8 @@ Table 4 shows that the Augmented Dickey-Fuller test results on the first differe
 ```{r ADF on the first difference}
 #| label: tbl-ADF2
 #| tbl-cap: Augmented Dickey-Fuller test results on the first difference
+# Take difference
 diff_variables <- diff(variables)
-
 adf_diff <- as.data.frame(matrix(nrow=ncol(diff_variables), ncol=4, NA))
 colnames(adf_diff) <- c("Variable", "Test statistic", "Critical value", "Stationarity")
 adf_diff$Variable <- colnames(diff_variables)
@@ -433,10 +426,10 @@ $$
 <br>
 $$
 \begin{align}
-Y = \begin{bmatrix} y_{1}' \\y_{2}'  \\. \\. \\. \\y_{T}' \end{bmatrix}_{T \times N} \quad
+Y = \begin{bmatrix} \space {y_{1}}' \\{y_{2}}'  \\. \\. \\. \\y_{T}' \end{bmatrix}_{T \times N} \quad
 A = \begin{bmatrix}\mu_{0}' \\A_{1}' \\.\\.\\.\\A_{p}' \end{bmatrix}_{K \times N} \quad
 x_t =\begin{bmatrix}\ 1 \\y_{t-1} \\.\\.\\.\\y_{t-p} \end{bmatrix}_{K \times 1} \quad
-X = \begin{bmatrix}\ x_{1}' \\x_{2}' \\.\\.\\.\\x_{T}' \end{bmatrix}_{T \times K} \quad
+X = \begin{bmatrix}\ {x_{1}}' \\x_{2}' \\.\\.\\.\\x_{T}' \end{bmatrix}_{T \times K} \quad
 E = \begin{bmatrix}\ \epsilon _{1}'  \\\epsilon _{2}' \\.\\.\\.\\\epsilon _{T}' \end{bmatrix}_{T \times N}
 \end{align}
 $$
@@ -527,11 +520,8 @@ For $n$ = 1, ... , $N$ check if
 $$
 \textbf{R}_nf(\tilde{B}_0,\tilde{B}_+)e_n\ > \textbf{0}_{R \times 1}
 $$ 
-f (B+, B0) – $R \times N$ matrix of functions of parameters to be
-restricted,
-f (B+, B0) = $B_0'$ – restrictions on contemporaneous relationships f (B+, B0) = B 1 0$B_1'$
-– restrictions on contemporaneous effects
-
+$f({B}_0,{B}_+)$ – $R \times N$ matrix of functions of parameters to be restricted,
+$f({B}_0,{B}_+)$ = $B_0'$ – restrictions on contemporaneous relationships f (B+, B0) = B 1 0$B_1'$ – restrictions on contemporaneous effects
 $$
 \begin{gather}
 f(\tilde{B}_0,\tilde{B}_+) = 
@@ -547,7 +537,6 @@ Table 5 shows the sign restrictions for the positive monetary policy shock.
 #| label: tbl-Sign-restrictions
 #| tbl-cap: Sign restrictions
 sign.restrictions.list <- data.frame(" " = "Monetary Policy Shock", "gdp" = "-", "ICR" = "+", "cpi" = "-", "EXR" = "+", "stp" = "", "vol" = "", check.names = FALSE)
-
 knitr::kable(sign.restrictions.list)
 ```
 
@@ -733,6 +722,8 @@ RW  <- cbind(RW1, RW2)
 ```
 The plot below shows the bi-variate Gaussian random walk process.
 ```{r random walks plot, fig.width=5, fig.height=3.5}
+#| label: fig-RW
+#| fig-cap: Plot of Gaussian Random Walk Process
 ggplot2::ggplot() +
   geom_line(aes(x=time(RW1), y=RW1), size=1, color="orange", linewidth=0.5) +
   geom_line(aes(x=time(RW1), y=RW2), size=1, color="skyblue", linewidth=0.5) +
@@ -751,19 +742,19 @@ At each iteration $s$ where $s$ goes from 1 to $S$,
 
 Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}}\right\}^{S}_{s=1}$.
 
-The `prior.distribution` function below computes prior distribution.
+The `prior.draw` function below computes prior distribution.
 ```{r prior distribution function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
-prior.distribution <- function(N, p) {
+prior.draw <- function(N, p) {
   
-  # Prior distribution
-  ############################################################
   # Calculate the MLE
   # ----------------------------------------------------------
   A.hat       <- solve(t(X)%*%X)%*%t(X)%*%Y                
   Sigma.hat   <- t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)  
   
+  # Prior distribution
+  ############################################################
   # Specify the prior distribution parameters
   # ----------------------------------------------------------
   kappa.1     <- 1
@@ -788,11 +779,13 @@ The function `baseline.posterior` below computes posterior distribution of the s
 #| code-summary: "See R code"
 baseline.posterior <- function(X, Y, N, p, S, prior.distribution) {
   
+  # Prior distribution parameters
+  # ----------------------------------------------------------
   A.prior  <- prior.distribution$A.prior
   V.prior  <- prior.distribution$V.prior
   S.prior  <- prior.distribution$S.prior
   nu.prior <- prior.distribution$nu.prior
-
+  
   # Posterior distribution
   ############################################################
   # Specify the matrix normal-inverse Wishart posterior parameters
@@ -804,7 +797,7 @@ baseline.posterior <- function(X, Y, N, p, S, prior.distribution) {
   S.bar       <- S.prior + t(Y)%*%Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
   S.bar.inv   <- solve(S.bar)
   
-  # Draw Posterior distribution
+  # Draw Posterior parameters
   # ----------------------------------------------------------
   ## Draw from the Reduced Form
   ### Draw Sigma from the inverse Wishart distribution
@@ -812,6 +805,7 @@ baseline.posterior <- function(X, Y, N, p, S, prior.distribution) {
   Sigma.posterior   <- apply(Sigma.posterior, 3, solve)  
   
   # Initialise arrays to store posterior draws
+  # ----------------------------------------------------------
   Sigma.posterior   <- array(Sigma.posterior, c(N,N,S))
   A.posterior       <- array(rnorm(prod(c(dim(A.bar), S))), c(dim(A.bar), S)) 
   B0.posterior      <- array(NA, c(N,N,S))
@@ -830,10 +824,10 @@ baseline.posterior <- function(X, Y, N, p, S, prior.distribution) {
     B1.posterior[,,s]  <- B0.posterior[,,s]%*%t(A.posterior[,,s])
     }
     
-  return(list(B0.posterior = B0.posterior, 
-              B1.posterior = B1.posterior,
-              A.posterior = A.posterior, 
-              Sigma.posterior = Sigma.posterior))
+  return(list(Sigma.posterior = Sigma.posterior,
+              A.posterior = A.posterior,
+              B0.posterior = B0.posterior, 
+              B1.posterior = B1.posterior))
 }
 ```
 
@@ -841,24 +835,25 @@ The `RW.identification` function below imposes sign restrictions on the random w
 ```{r RW baseline model identification function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
-RW.identification <- function (N, p, sign.restrictions, posterior.distribution){
+RW.identification <- function (N, p, S, sign.restrictions, posterior.distribution){
   
-  A.posterior <- posterior.distribution$A.posterior
+  # Posterior distribution parameters
+  # ----------------------------------------------------------
   Sigma.posterior <- posterior.distribution$Sigma.posterior
+  A.posterior  <- posterior.distribution$A.posterior
   B0.posterior <- posterior.distribution$B0.posterior
   B1.posterior <- posterior.distribution$B1.posterior
   
-  S <- dim(A.posterior)[3]
-  
-  # Identification via sign restrictions
-  ############################################################
   # Initialise arrays to store Q identified estimates
+  # ----------------------------------------------------------
   i.vec <- c()
   Q.store      <- array(NA, c(N,N,S))
   B0.store     <- array(NA, c(N,N,S))
   B1.store     <- array(NA, c(N,K,S))
   
-  # Generate corresponding R matrix
+  # Identification via sign restrictions
+  ############################################################
+  # Generate R matrix
   R <- diag(sign.restrictions)
   
   for (s in 1:S){
@@ -888,11 +883,8 @@ RW.identification <- function (N, p, sign.restrictions, posterior.distribution){
     B1.store[,,s]  <- B1
     }
   
-  B0.mean     <- apply(B0.store, 1:2, mean)  
-  B1.mean     <- apply(B1.store, 1:2, mean)
-  
-  return(list(B0.mean = B0.mean, 
-              B1.mean = B1.mean))
+  return(list(B0.store = B0.store, 
+              B1.store = B1.store))
   }
 ```
 
@@ -927,42 +919,44 @@ X           <- as.matrix(X)
 sign.restrictions=c(1, 1)
 ```
 
-```{r random walk baseline model posterior distribution}
-prior.parameters     <- prior.distribution(N, p)
+```{r RW baseline model posterior distribution}
+prior.parameters     <- prior.draw(N, p)
 posterior.parameters <- baseline.posterior(X, Y, N, p, S, prior.parameters)
-B.restricted         <- RW.identification(N, p, sign.restrictions, posterior.parameters)
+B.restricted         <- RW.identification(N, p, S, sign.restrictions, posterior.parameters)
+B0.mean              <- apply(B.restricted$B0.store, 1:2, mean)
+B1.mean              <- apply(B.restricted$B1.store, 1:2, mean)
 ```
 
 The results below show the mean of the matrices $B_0$ and $B_+$.
-```{r random walk baseline model Matrix B0}
+```{r RW baseline model Matrix B0}
 #| label: RW-baseline-B0
 #| tbl-cap: Mean of the $B_0$ Matrix
-knitr::kable(round(apply(B.restricted$B0.mean, 1:2, mean), 4))
+knitr::kable(round(B0.mean, 4))
 ```
 
-```{r random walk baseline model Matrix B+}
+```{r RW baseline model Matrix B+}
 #| label: RW-baseline-B+
 #| tbl-cap: Mean of the $B_+$ Matrix
-knitr::kable(round(apply(B.restricted$B1.mean, 1:2, mean), 4))
+knitr::kable(round(B1.mean, 4))
 ```
 
 The results below show the mean of the matrices $A$ and $\Sigma$.
-```{r random walk baseline model A posterior}
+```{r RW baseline model A posterior}
 #| label: RW-baseline-A-posterior
 #| tbl-cap: Mean of the $A$ posterior
-A.posterior.RW.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
-colnames(A.posterior.RW.baseline) <- c("y1", "y2")
-rownames(A.posterior.RW.baseline) <- c("constant", "lag of y1", "lag of y2")
-knitr::kable(A.posterior.RW.baseline, format = "html", escape = FALSE)
+A.posterior.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.baseline) <- c("y1", "y2")
+rownames(A.posterior.baseline) <- c("constant", "lag of y1", "lag of y2")
+knitr::kable(A.posterior.baseline, format = "html", escape = FALSE)
 ```
 
-```{r random walk baseline model Sigma posterior}
+```{r RW baseline model Sigma posterior}
 #| label: RW-baseline-Sigma-posterior
 #| tbl-cap: Mean of the $\Sigma$ posterior
-Sigma.posterior.RW.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
-colnames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
-rownames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
-knitr::kable(Sigma.posterior.RW.baseline)
+Sigma.posterior.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.baseline) <- c("y1", "y2")
+rownames(Sigma.posterior.baseline) <- c("y1", "y2")
+knitr::kable(Sigma.posterior.baseline)
 ```
 
 
@@ -1100,12 +1094,14 @@ At each iteration $s$ where $s$ goes from 1 to $S$,
 
 Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}} ,\lambda^{(s)}\right\}^{S}_{s=1}$.
 
-Applying same method as 4.1.3, except for applying the function `extended.posterior` below to compute posterior distribution for t-distributed error model. 
+Applying same method as 4.1.3, except for applying the function `extended.posterior` below to compute posterior distribution for t-distributed error model.
 ```{r extended model posterior distribution function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
 extended.posterior <- function(X, Y, N, p, S, prior.distribution) {
   
+  # Prior distribution parameters
+  # ----------------------------------------------------------
   A.prior  <- prior.distribution$A.prior
   V.prior  <- prior.distribution$V.prior
   S.prior  <- prior.distribution$S.prior
@@ -1114,9 +1110,8 @@ extended.posterior <- function(X, Y, N, p, S, prior.distribution) {
   nu.prior.lambda  <- 5    # assume that it is fixed
   lambda   <- s.prior.lambda/rchisq(1, nu.prior.lambda)
   
-  # Posterior distribution
-  ############################################################
   # Initialise arrays to store posterior draws
+  # ----------------------------------------------------------
   Sigma.posterior   <- array(NA, c(N,N,S))
   A.posterior       <- array(NA, c(K,N,S))
   lambda.posterior  <- rep(NA, S)
@@ -1125,16 +1120,18 @@ extended.posterior <- function(X, Y, N, p, S, prior.distribution) {
   
   for (s in 1:S){
     
+    # Posterior distribution
+    ############################################################
     # Specify the matrix normal-inverse Wishart posterior parameters
     # ----------------------------------------------------------
-    V.bar.inv  <- t(X)%*%X/lambda + diag(1/diag(V.prior))
-    V.bar      <- solve(V.bar.inv)
-    A.bar      <- V.bar%*%(t(X)%*%Y/lambda + diag(1/diag(V.prior))%*%A.prior)
-    nu.bar     <- nrow(Y) + nu.prior
-    S.bar      <- S.prior + t(Y)%*%Y/lambda + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
-    S.bar.inv  <- solve(S.bar)
+    V.bar.inv   <- t(X)%*%X/lambda + diag(1/diag(V.prior))
+    V.bar       <- solve(V.bar.inv)
+    A.bar       <- V.bar%*%(t(X)%*%Y/lambda + diag(1/diag(V.prior))%*%A.prior)
+    nu.bar      <- nrow(Y) + nu.prior
+    S.bar       <- S.prior + t(Y)%*%Y/lambda + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
+    S.bar.inv   <- solve(S.bar)
     
-    # Draw Posterior distribution
+    # Draw Posterior parameters
     # ----------------------------------------------------------
     ## Draw from the Reduced Form
     ### Draw Sigma from the inverse Wishart distribution
@@ -1147,7 +1144,7 @@ extended.posterior <- function(X, Y, N, p, S, prior.distribution) {
     ### Draw lambda from inverse gamma 2 distribution
     s.posterior.lambda    <- sum(diag(Sigma.posterior.inv%*%t(Y-X%*%A.posterior[,,s])%*%(Y-X%*%A.posterior[,,s]))) + s.prior.lambda
     nu.posterior.lambda   <- nrow(Y)*ncol(Y) + nu.prior.lambda
-    lambda                <- s.posterior.lambda/rchisq(1, nu.posterior.lambda)
+    lambda   <- s.posterior.lambda/rchisq(1, nu.posterior.lambda)
     lambda.posterior[s]   <- lambda
     
     ## Draw from the Structural Form
@@ -1159,12 +1156,12 @@ extended.posterior <- function(X, Y, N, p, S, prior.distribution) {
     B1.posterior[,,s]     <- B0.posterior[,,s]%*%t(A.posterior[,,s])
   }
   
-  return(list(B0.posterior = B0.posterior, 
-              B1.posterior = B1.posterior,
-              A.posterior = A.posterior, 
-              Sigma.posterior = Sigma.posterior,
-              lambda.posterior = lambda.posterior))
-}
+ return(list(Sigma.posterior = Sigma.posterior,
+             A.posterior = A.posterior,
+             lambda.posterior = lambda.posterior,
+             B0.posterior = B0.posterior, 
+             B1.posterior = B1.posterior))
+ }
 ```
 
 ```{r RW extended model data}
@@ -1199,45 +1196,46 @@ sign.restrictions=c(1, 1)
 ```
 
 ```{r RW extended model posterior distribution}
-prior.parameters     <- prior.distribution(N, p)
+prior.parameters     <- prior.draw(N, p)
 posterior.parameters <- extended.posterior(X, Y, N, p, S, prior.parameters)
-B.restricted         <- RW.identification(N, p, sign.restrictions, posterior.parameters)
+B.restricted         <- RW.identification(N, p, S, sign.restrictions, posterior.parameters)
+B0.mean              <- apply(B.restricted$B0.store, 1:2, mean)
+B1.mean              <- apply(B.restricted$B1.store, 1:2, mean)
 ```
-
 The results below show the mean of the matrices $B_0$ and $B_+$.
-```{r random walk extended model Matrix B0}
+```{r RW extended model Matrix B0}
 #| label: RW-extended-B0
 #| tbl-cap: Mean of $B_0$ Matrix
-knitr::kable(round(apply(B.restricted$B0.mean, 1:2, mean), 4))
+knitr::kable(round(B0.mean, 4))
 ```
 
-```{r random walk extended model Matrix B+}
+```{r RW extended model Matrix B+}
 #| label: RW-extended-B+
 #| tbl-cap: Mean of $B_+$ Matrix
-knitr::kable(round(apply(B.restricted$B1.mean, 1:2, mean), 4))
+knitr::kable(round(B1.mean, 4))
 ```
 
 The results below show the mean of the matrices $A$ and $\Sigma$.
-```{r random walk extended model A posterior}
+```{r RW extended model A posterior}
 #| label: RW-extended-A-posterior
 #| tbl-cap: Mean of the $A$ posterior
-A.posterior.RW.extended <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
-colnames(A.posterior.RW.extended) <- c("y1", "y2")
-rownames(A.posterior.RW.extended) <- c("constant", "lag of y1", "lag of y2")
-knitr::kable(A.posterior.RW.extended)
+A.posterior.extended <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.extended) <- c("y1", "y2")
+rownames(A.posterior.extended) <- c("constant", "lag of y1", "lag of y2")
+knitr::kable(A.posterior.extended)
 ```
 
-```{r random walk extended model Sigma posterior}
-#| label: RW-extended-sigma-posterior
+```{r RW extended model Sigma posterior}
+#| label: RW-extended-Sigma-posterior
 #| tbl-cap: Mean of the $\Sigma$ posterior
-Sigma.posterior.RW.extended <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
-colnames(Sigma.posterior.RW.extended) <- c("y1", "y2")
-rownames(Sigma.posterior.RW.extended) <- c("y1", "y2")
-knitr::kable(Sigma.posterior.RW.extended)
+Sigma.posterior.extended <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.extended) <- c("y1", "y2")
+rownames(Sigma.posterior.extended) <- c("y1", "y2")
+knitr::kable(Sigma.posterior.extended)
 ```
 
 The lambda value below verifies that the main diagonal of sigma is equal to 1 if multiply it with lambda.
-```{r random walk extended model lambda posterior}
+```{r RW extended model lambda posterior}
 #| label: RW-extended-lambda
 #| tbl-cap: Mean of the $\lambda$ posterior
 knitr::kable(round(mean(posterior.parameters$lambda.posterior), 4), col.names=c("lambda"))
@@ -1257,7 +1255,14 @@ Y = XA + E \\
 $$ 
 where the column-specific covariance matrix of error terms is set to be $\text{diag}(\sigma^2)$. 
 
-The parameter $\sigma^2$ is a vector of conditional heteroskedasticity variables:
+The parameter $\sigma^2$ is a vector of conditional heteroskedasticity variable.
+$$
+\begin{gather}
+\sigma^2 = [\exp(h_1), \space...,\space \exp(h_T)]'
+\end{gather}
+$$
+where $h_T$ follows a stochastic volatility process. 
+
 
 ### 4.3.2 Estimation Procedure
 
@@ -1301,12 +1306,12 @@ $$
 $$
 
 
-### 4.3.3 Algorithm
+### 4.3.3 Algorithm Validation
 
 #### **Gibbs Sampler**
 
 The function `SVcommon.Gibbs.iteration` below computes Gibbs sampler for the stochastic volatility.
-```{r echo=TRUE}
+```{r SV Gibbs sampler function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
 SVcommon.Gibbs.iteration <- function(aux, priors) {
@@ -1337,47 +1342,47 @@ SVcommon.Gibbs.iteration <- function(aux, priors) {
   pi.st         <- c(0.00609,0.04775,0.13057,0.20674,0.22715,0.18842,0.12047,0.05591,0.01575,0.00115)
   
   Lambda        <- solve(chol(aux$Sigma))
-  Z             <- rowSums( ( aux$Y - aux$X %*% aux$A ) %*% Lambda ) / sqrt(N)
-  Y.tilde       <- as.vector(log((Z + 0.0000001)^2))
-  Ytilde.alpha  <- as.matrix(Y.tilde - alpha.st[as.vector(aux$s)])
+  Z             <- rowSums((aux$Y-aux$X%*%aux$A)%*%Lambda)/sqrt(N)
+  Y.tilde       <- as.vector(log((Z+0.0000001)^2))
+  Ytilde.alpha  <- as.matrix(Y.tilde-alpha.st[as.vector(aux$s)])
   
-  # sampling initial condition
+  # Sampling initial condition
   ############################################################
   V.h0.bar      <- 1/((1/priors$h0.v) + (1/aux$sigma.v2))
   m.h0.bar      <- V.h0.bar*((priors$h0.m/priors$h0.v) + (aux$H[1]/aux$sigma.v2))
-  h0.draw       <- rnorm(1, mean = m.h0.bar, sd = sqrt(V.h0.bar))
+  h0.draw       <- rnorm(1, mean=m.h0.bar, sd=sqrt(V.h0.bar))
   aux$h0        <- h0.draw
   
-  # sampling sigma.v2
+  # Sampling sigma.v2
   ############################################################
-  sigma.v2.s    <- priors$sigmav.s + sum(c(aux$H[1] - aux$h0, diff(aux$H))^2)
-  sigma.v2.draw <- sigma.v2.s/rchisq(1,priors$sigmav.nu + T)
+  sigma.v2.s    <- priors$sigmav.s + sum(c(aux$H[1]-aux$h0, diff(aux$H))^2)
+  sigma.v2.draw <- sigma.v2.s/rchisq(1, priors$sigmav.nu+T)
   aux$sigma.v2  <- sigma.v2.draw
   
-  # sampling auxiliary states
+  # Sampling auxiliary states
   ############################################################
   Pr.tmp        <- simplify2array(lapply(1:10,function(x){
     dnorm(Y.tilde, mean = as.vector(aux$H+alpha.st[x]), sd=sqrt(sigma.st[x]), log=TRUE) + log(pi.st[x])
   }))
   Pr            <- t(apply(Pr.tmp, 1, function(x){exp(x-max(x))/sum(exp(x-max(x)))}))
-  s.cum         <- t(apply(Pr,1,cumsum))
-  r             <- matrix(rep(runif(T),10), ncol = 10)
+  s.cum         <- t(apply(Pr, 1, cumsum))
+  r             <- matrix(rep(runif(T), 10), ncol = 10)
   ss            <- apply(s.cum<r, 1, sum) + 1
   aux$s         <- as.matrix(ss)
 
-  # sampling log-volatilities using functions for tridiagonal precision matrix
+  # Sampling log-volatilities using functions for tridiagonal precision matrix
   ############################################################
   Sigma.s.inv   <- diag(1/sigma.st[as.vector(aux$s)])
   D.inv         <- Sigma.s.inv + (1/aux$sigma.v2)*priors$HH
   b             <- as.matrix(Ytilde.alpha/sigma.st[as.vector(aux$s)] + (aux$h0/aux$sigma.v2)*diag(T)[,1])
   lead.diag     <- diag(D.inv)
-  sub.diag      <- mgcv::sdiag(D.inv,-1)
+  sub.diag      <- mgcv::sdiag(D.inv, -1)
   D.chol        <- mgcv::trichol(ld=lead.diag, sd=sub.diag)
   D.L           <- diag(D.chol$ld)
-  mgcv::sdiag(D.L,-1) <- D.chol$sd
+  mgcv::sdiag(D.L, -1) <- D.chol$sd
   x             <- as.matrix(rnorm(T))
-  a             <- forwardsolve(D.L,b)
-  draw          <- backsolve(t(D.L),a+x)
+  a             <- forwardsolve(D.L, b)
+  draw          <- backsolve(t(D.L), a+x)
   aux$H         <- as.matrix(draw)
   aux$sigma2    <- as.matrix(exp(draw))
   
@@ -1389,29 +1394,24 @@ The function `SV.baseline.posterior` below computes posterior distribution of th
 ```{r SV baseline model posterior distribution function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
-SV.baseline.posterior <- function(Y, X, S, prior.distribution) {
-  
-  N <- ncol(Y)
-  K <- ncol(X)
-  T <- nrow(Y)
- 
-  A.prior <- prior.distribution$A.prior
-  V.prior <- prior.distribution$V.prior
-  S.prior <- prior.distribution$S.prior
-  nu.prior <- prior.distribution$nu.prior
+SV.baseline.posterior <- function(X, Y, N, p, S, prior.distribution) {
 
+  A.prior  <- prior.distribution$A.prior
+  V.prior  <- prior.distribution$V.prior
+  S.prior  <- prior.distribution$S.prior
+  nu.prior <- prior.distribution$nu.prior
+  
   Sigma.posterior   <- array(NA, c(N,N,S))
   A.posterior       <- array(NA, c(K,N,S))
-  H.posterior       <- array(NA,c(T, S+1))
+  H.posterior       <- array(NA, c(T, S+1))
   B0.posterior      <- array(NA, c(N,N,S))
   B1.posterior      <- array(NA, c(N,K,S))
   
-  # Initialise h0
-  H.posterior[,1]     <- matrix(1, T, 1) 
+  # Initialise h0 (aux$sigma2)
+  H.posterior[,1]     <- matrix(1,T,1) 
   HH                  <- 2*diag(T)
   mgcv::sdiag(HH, -1) <- -1
   mgcv::sdiag(HH, 1)  <- -1
-  nu.bar              <- nrow(Y) + nu.prior
   
   # Define priors for the SV model
   priors = list(HH = HH,
@@ -1429,10 +1429,12 @@ SV.baseline.posterior <- function(Y, X, S, prior.distribution) {
     V.bar.inv   <- t(X)%*%diag(1/H.posterior[,s])%*%X + diag(1/diag(V.prior))
     V.bar       <- solve(V.bar.inv)
     A.bar       <- V.bar%*%(t(X)%*%diag(1/H.posterior[,s])%*%Y + diag(1/diag(V.prior))%*%A.prior)
+    nu.bar      <- nrow(Y) + nu.prior
     S.bar       <- S.prior + t(Y)%*%diag(1/H.posterior[,s])%*%Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior-t(A.bar)%*%V.bar.inv%*%A.bar
     S.bar.inv   <- solve(S.bar)
+    S.bar.inv   <- 0.5*(t(S.bar.inv)+S.bar.inv) # Maintain positive-definiteness
     
-    # Draw Posterior distribution
+    # Draw Posterior parameters
     # ----------------------------------------------------------
     ## Draw from the Reduced Form
     ### Draw Sigma from the inverse Wishart distribution
@@ -1440,11 +1442,11 @@ SV.baseline.posterior <- function(Y, X, S, prior.distribution) {
     Sigma.posterior[,,s]  <- solve(Sigma.posterior.inv)
     
     ### Draw A from matrix-variate normal distribution
+    cholSigma.s           <- chol(Sigma.posterior[,,s])
     A.posterior[,,s]      <- matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.bar), sigma=Sigma.posterior[,,s]%x%V.bar), ncol=N)
-    
+
     ## Draw from the Structural Form
     ### Draw B0
-    cholSigma.s           <- chol(Sigma.posterior[,,s])
     B0.posterior[,,s]     <- solve(t(cholSigma.s)) 
     
     ### Draw Bplus
@@ -1452,39 +1454,36 @@ SV.baseline.posterior <- function(Y, X, S, prior.distribution) {
     
     ## Draw H from SVcommon.Gibbs.iteration function
     if (s == 1){  # initialise input arguments 
-        aux = list( 
-              Y             = Y,
-              X             = X,
-              H             = matrix(1,T,1),
-              h0            = 0,
-              sigma.v2      = 1,
-              s             = matrix(1,T,1),
-              Sigma         = Sigma.posterior[,,s],
-              A             = A.posterior[,,s],
-              sigma2        = matrix(1,T,1))
-        
-    }else{  # update input arguments  
-      aux = list(
-                Y           = Y,
-                X           = X,
-                H           = tmp$H,
-                h0          = tmp$h0,
-                sigma.v2    = tmp$sigma.v2,
-                s           = tmp$s,
-                Sigma       = Sigma.posterior[,,s],
-                A           = A.posterior[,,s],
-                sigma2      = tmp$sigma2)
-      }
+      aux = list(Y = Y,
+                 X = X,
+                 H = matrix(1,T,1),
+                 h0 = 0,
+                 sigma.v2 = 1,
+                 s = matrix(1,T,1),
+                 A = A.posterior[,,s],
+                 Sigma = Sigma.posterior[,,s],
+                 sigma2 = matrix(1,T,1))
+      }else{  # update input arguments        
+        aux = list(Y = Y,
+                   X = X,
+                   H = tmp$H,
+                   h0 = tmp$h0,
+                   sigma.v2 = tmp$sigma.v2,
+                   s = tmp$s,
+                   A = A.posterior[,,s],
+                   Sigma = Sigma.posterior[,,s],
+                   sigma2 = tmp$sigma2)
+        }
     
     tmp <- SVcommon.Gibbs.iteration(aux, priors)
     H.posterior[,s+1] <- as.matrix(tmp$sigma2)
     }
   
-  return(list(Sigma.posterior = Sigma.posterior[,,2:S], 
-              A.posterior = A.posterior[,,2:S], 
-              B1.posterior = B1.posterior[,,2:S], 
-              B0.posterior = B0.posterior[,,2:S], 
-              H.posterior = H.posterior[,3:S+1]))
+  return(list(Sigma.posterior = Sigma.posterior, 
+              A.posterior = A.posterior, 
+              H.posterior = H.posterior,
+              B1.posterior = B1.posterior, 
+              B0.posterior = B0.posterior))
   }
 ```
 
@@ -1520,54 +1519,54 @@ sign.restrictions=c(1, 1)
 ```
 
 ```{r RW SV baseline model posterior distribution}
-prior.parameters     <- prior.distribution(N, p)
-posterior.parameters <- SV.baseline.posterior(Y, X, S, prior.parameters)
-B.restricted         <- RW.identification(N, p, sign.restrictions, posterior.parameters)
+prior.parameters     <- prior.draw(N, p)
+posterior.parameters <- SV.baseline.posterior(X, Y, N, p, S, prior.parameters)
+B.restricted         <- RW.identification(N, p, S, sign.restrictions, posterior.parameters)
+B0.mean              <- apply(B.restricted$B0.store, 1:2, mean)
+B1.store             <- apply(B.restricted$B1.store, 1:2, mean)
 ```
 
 The results below show the mean of the matrices $B_0$ and $B_+$.
 ```{r RW SV baseline model Matrix B0}
 #| label: RW-SV-baseline-B0
 #| tbl-cap: Mean of $B_0$ Matrix
-knitr::kable(round(apply(B.restricted$B0.mean, 1:2, mean), 4))
+knitr::kable(round(B0.mean, 4))
 ```
 
 ```{r RW SV baseline model Matrix B+}
 #| label: RW-SV-baseline-B+
 #| tbl-cap: Mean of $B_+$ Matrix
-knitr::kable(round(apply(B.restricted$B1.mean, 1:2, mean), 4))
+knitr::kable(round(B1.mean, 4))
 ```
 
 The results below show the mean of the matrices $A$ and $\Sigma$.
 ```{r RW SV baseline model A posterior}
 #| label: RW-SV-baseline-A-posterior
 #| tbl-cap: Mean of the $A$ posterior
-A.posterior.RW.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
-colnames(A.posterior.RW.baseline) <- c("y1", "y2")
-rownames(A.posterior.RW.baseline) <- c("constant", "lag of y1", "lag of y2")
-knitr::kable(A.posterior.RW.baseline, format = "html", escape = FALSE)
+A.posterior.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.baseline) <- c("y1", "y2")
+rownames(A.posterior.baseline) <- c("constant", "lag of y1", "lag of y2")
+knitr::kable(A.posterior.baseline, format = "html", escape = FALSE)
 ```
 
 ```{r RW SV baseline model Sigma posterior}
 #| label: RW-SV-baseline-Sigma-posterior
 #| tbl-cap: Mean of the $\Sigma$ posterior
-Sigma.posterior.RW.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
-colnames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
-rownames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
-knitr::kable(Sigma.posterior.RW.baseline)
+Sigma.posterior.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.baseline) <- c("y1", "y2")
+rownames(Sigma.posterior.baseline) <- c("y1", "y2")
+knitr::kable(Sigma.posterior.baseline)
 ```
 
-Figure 5 provides a time series plot of posterior mean of $\sigma^2$. $\sigma^2$ oscillates around the value of 2100 over time.
-```{r RW SV baseline model H posterior}
-#| label: fig-baseline-H-posterior 
+```{r RW SV baseline model H posterior, fig.width=5, fig.height=3.5}
+#| label: fig-RW-SV-baseline-H-posterior
 #| fig-cap: Plot of posterior mean of stochastic volatility (standard model with stochastic volatility)
 sigma2.mean.vec <- apply(posterior.parameters$H.posterior, 1, mean) 
 plot.ts(sigma2.mean.vec, 
         main=expression(paste("Posterior Mean of ",sigma^2)),
-        ylab="", type='l', lwd=2, col="#3399CC")
+        ylab="", type='l', lwd=2, col="#7799DD")
 abline(h=mean(sigma2.mean.vec),lty=2)
 ```
-
 
 ## 4.4 Bayesian SVAR Model with *t*-distributed Errors and Stochastic Volatility
 
@@ -1648,7 +1647,7 @@ $$
 \end{align}
 $$
 
-### 4.4.3 Algorithm
+### 4.4.3 Algorithm Validation
 
 #### **Gibbs Sampler**
 
@@ -1669,15 +1668,11 @@ The function `SV.extended.posterior` below computes posterior distribution of th
 ```{r SV extended model posterior distribution function, echo=TRUE}
 #| code-fold: true
 #| code-summary: "See R code"
-SV.extended.posterior <- function(Y, X, S, prior.distribution) {
-  
-  N <- ncol(Y)
-  K <- ncol(X)
-  T <- nrow(Y)
-  
-  A.prior <- prior.distribution$A.prior
-  V.prior <- prior.distribution$V.prior
-  S.prior <- prior.distribution$S.prior
+SV.extended.posterior <- function(X, Y, N, p, S, prior.distribution) {
+
+  A.prior  <- prior.distribution$A.prior
+  V.prior  <- prior.distribution$V.prior
+  S.prior  <- prior.distribution$S.prior
   nu.prior <- prior.distribution$nu.prior
   s.prior.lambda   <- 5    # assume that it is fixed
   nu.prior.lambda  <- 5    # assume that it is fixed
@@ -1686,15 +1681,15 @@ SV.extended.posterior <- function(Y, X, S, prior.distribution) {
   Sigma.posterior   <- array(NA, c(N,N,S))
   A.posterior       <- array(NA, c(K,N,S))
   H.posterior       <- array(NA, c(T, S+1))
+  lambda.posterior  <- rep(NA, S)
   B0.posterior      <- array(NA, c(N,N,S))
   B1.posterior      <- array(NA, c(N,K,S))
   
-  # Initialise h0
-  H.posterior[,1]     <- matrix(1, T, 1) 
+  # Initialise h0 (aux$sigma2)
+  H.posterior[,1]     <- matrix(1,T,1) 
   HH                  <- 2*diag(T)
   mgcv::sdiag(HH, -1) <- -1
   mgcv::sdiag(HH, 1)  <- -1
-  nu.bar              <- nrow(Y) + nu.prior
   
   # Define priors for the SV model
   priors = list(HH = HH,
@@ -1703,19 +1698,21 @@ SV.extended.posterior <- function(Y, X, S, prior.distribution) {
                 sigmav.s = 1,
                 sigmav.nu = 1)
   
-  for (s in 1:S) {
+  for (s in 1:S){
     
     # Posterior distribution
     ############################################################
     # Specify the matrix normal-inverse Wishart posterior parameters
     # ----------------------------------------------------------
-    V.bar.inv   <- t(X)%*%diag(1/H.posterior[,s])%*%X + diag(1/diag(V.prior))
+    V.bar.inv   <- t(X)%*%diag(1/(H.posterior[,s]*lambda))%*%X + diag(1/diag(V.prior))
     V.bar       <- solve(V.bar.inv)
-    A.bar       <- V.bar%*%(t(X)%*%diag(1/H.posterior[,s])%*%Y + diag(1/diag(V.prior))%*%A.prior)
-    S.bar       <- S.prior + t(Y)%*%diag(1/H.posterior[,s])%*%Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior-t(A.bar)%*%V.bar.inv%*%A.bar
+    A.bar       <- V.bar%*%(t(X)%*%diag(1/(H.posterior[,s]*lambda))%*%Y + diag(1/diag(V.prior))%*%A.prior)
+    nu.bar      <- nrow(Y) + nu.prior
+    S.bar       <- S.prior + t(Y)%*%diag(1/(H.posterior[,s]*lambda))%*%Y + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior-t(A.bar)%*%V.bar.inv%*%A.bar
     S.bar.inv   <- solve(S.bar)
+    S.bar.inv   <- 0.5*(t(S.bar.inv)+S.bar.inv) # Maintain positive-definiteness
     
-    # Draw Posterior distribution
+    # Draw Posterior parameters
     # ----------------------------------------------------------
     ## Draw from the Reduced Form
     ### Draw Sigma from the inverse Wishart distribution
@@ -1723,11 +1720,17 @@ SV.extended.posterior <- function(Y, X, S, prior.distribution) {
     Sigma.posterior[,,s]  <- solve(Sigma.posterior.inv)
     
     ### Draw A from matrix-variate normal distribution
+    cholSigma.s           <- chol(Sigma.posterior[,,s])
     A.posterior[,,s]      <- matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.bar), sigma=Sigma.posterior[,,s]%x%V.bar), ncol=N)
+
+    ### Draw lambda from inverse gamma 2 distribution
+    s.posterior.lambda    <- sum(diag(Sigma.posterior.inv%*%t(Y-X%*%A.posterior[,,s])%*%diag(1/(H.posterior[,s]))%*%(Y-X%*%A.posterior[,,s]))) + s.prior.lambda
+    nu.posterior.lambda   <- nrow(Y)*ncol(Y) + nu.prior.lambda
+    lambda   <- s.posterior.lambda/rchisq(1, nu.posterior.lambda)
+    lambda.posterior[s]   <- lambda
     
     ## Draw from the Structural Form
     ### Draw B0
-    cholSigma.s           <- chol(Sigma.posterior[,,s])
     B0.posterior[,,s]     <- solve(t(cholSigma.s)) 
     
     ### Draw Bplus
@@ -1735,39 +1738,37 @@ SV.extended.posterior <- function(Y, X, S, prior.distribution) {
     
     ## Draw H from SVcommon.Gibbs.iteration function
     if (s == 1){  # initialise input arguments 
-        aux = list( 
-              Y             = Y,
-              X             = X,
-              H             = matrix(1,T,1),
-              h0            = 0,
-              sigma.v2      = 1,
-              s             = matrix(1,T,1),
-              Sigma         = Sigma.posterior[,,s],
-              A             = A.posterior[,,s],
-              sigma2        = matrix(1,T,1))
-        
-    }else{  # update input arguments  
-      aux = list(
-                Y           = Y,
-                X           = X,
-                H           = tmp$H,
-                h0          = tmp$h0,
-                sigma.v2    = tmp$sigma.v2,
-                s           = tmp$s,
-                Sigma       = Sigma.posterior[,,s],
-                A           = A.posterior[,,s],
-                sigma2      = tmp$sigma2)
-      }
+      aux = list(Y = Y,
+                 X = X,
+                 H = matrix(1,T,1),
+                 h0 = 0,
+                 sigma.v2 = 1,
+                 s = matrix(1,T,1),
+                 A = A.posterior[,,s],
+                 Sigma = Sigma.posterior[,,s],
+                 sigma2 = matrix(1,T,1))
+      }else{  # update input arguments        
+        aux = list(Y = Y,
+                   X = X,
+                   H = tmp$H,
+                   h0 = tmp$h0,
+                   sigma.v2 = tmp$sigma.v2,
+                   s = tmp$s,
+                   A = A.posterior[,,s],
+                   Sigma = Sigma.posterior[,,s],
+                   sigma2 = tmp$sigma2)
+        }
     
     tmp <- SVcommon.Gibbs.iteration(aux, priors)
-    H.posterior[, s + 1] <- as.matrix(tmp$sigma2)
+    H.posterior[,s+1] <- as.matrix(tmp$sigma2)
     }
   
-  return(list(Sigma.posterior = Sigma.posterior[,,2:S], 
-              A.posterior = A.posterior[,,2:S], 
-              B1.posterior = B1.posterior[,,2:S], 
-              B0.posterior = B0.posterior[,,2:S], 
-              H.posterior = H.posterior[,3:S+1]))
+  return(list(Sigma.posterior = Sigma.posterior, 
+              A.posterior = A.posterior, 
+              H.posterior = H.posterior,
+              lambda.posterior = lambda.posterior,
+              B1.posterior = B1.posterior, 
+              B0.posterior = B0.posterior))
   }
 ```
 
@@ -1803,49 +1804,58 @@ sign.restrictions=c(1, 1)
 ```
 
 ```{r RW SV extended model posterior distribution}
-prior.parameters     <- prior.distribution(N, p)
-posterior.parameters <- SV.extended.posterior(Y, X, S, prior.parameters)
-B.restricted         <- RW.identification(N, p, sign.restrictions, posterior.parameters)
+prior.parameters     <- prior.draw(N, p)
+posterior.parameters <- SV.extended.posterior(X, Y, N, p, S, prior.parameters)
+B.restricted         <- RW.identification(N, p, S, sign.restrictions, posterior.parameters)
+B0.mean              <- apply(B.restricted$B0.store, 1:2, mean)
+B1.store             <- apply(B.restricted$B1.store, 1:2, mean)
 ```
 
+The results below show the mean of the matrices $B_0$ and $B_+$.
 ```{r RW SV extended model Matrix B0}
 #| label: RW-SV-extended-B0
 #| tbl-cap: Mean of $B_0$ Matrix
-knitr::kable(round(apply(B.restricted$B0.mean, 1:2, mean), 4))
+knitr::kable(round(B0.mean, 4))
 ```
 
 ```{r RW SV extended model Matrix B+}
 #| label: RW-SV-extended-B+
 #| tbl-cap: Mean of $B_+$ Matrix
-knitr::kable(round(apply(B.restricted$B1.mean, 1:2, mean), 4))
+knitr::kable(round(B1.mean, 4))
 ```
 
 The results below show the mean of the matrices $A$ and $\Sigma$.
 ```{r RW SV extended model A posterior}
 #| label: RW-SV-extended-A-posterior
 #| tbl-cap: Mean of the $A$ posterior
-A.posterior.RW.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
-colnames(A.posterior.RW.baseline) <- c("y1", "y2")
-rownames(A.posterior.RW.baseline) <- c("constant", "lag of y1", "lag of y2")
-knitr::kable(A.posterior.RW.baseline, format = "html", escape = FALSE)
+A.posterior.extended <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.extended) <- c("y1", "y2")
+rownames(A.posterior.extended) <- c("constant", "lag of y1", "lag of y2")
+knitr::kable(A.posterior.extended, format = "html", escape = FALSE)
 ```
 
 ```{r RW SV extended model Sigma posterior}
 #| label: RW-SV-extended-Sigma-posterior
 #| tbl-cap: Mean of the $\Sigma$ posterior
-Sigma.posterior.RW.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
-colnames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
-rownames(Sigma.posterior.RW.baseline) <- c("y1", "y2")
-knitr::kable(Sigma.posterior.RW.baseline)
+Sigma.posterior.extended <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.extended) <- c("y1", "y2")
+rownames(Sigma.posterior.extended) <- c("y1", "y2")
+knitr::kable(Sigma.posterior.extended)
 ```
 
-```{r RW SV extended model H posterior}
-#| label: fig-extended-H-posterior 
+```{r RW SV extended model lambda posterior}
+#| label: RW-SV-extended-lambda
+#| tbl-cap: Mean of the $\lambda$ posterior
+knitr::kable(round(mean(posterior.parameters$lambda.posterior), 4), col.names=c("lambda"))
+```
+
+```{r RW SV extended model H posterior, fig.width=5, fig.height=3.5}
+#| label: fig-RW-SV-extended-H-posterior
 #| fig-cap: Plot of posterior mean of stochastic volatility (t-distributed error model with stochastic volatility)
 sigma2.mean.vec <- apply(posterior.parameters$H.posterior, 1, mean) 
 plot.ts(sigma2.mean.vec, 
         main=expression(paste("Posterior Mean of ",sigma^2)),
-        ylab="", type='l', lwd=2, col="#3399CC")
+        ylab="", type='l', lwd=2, col="#7799DD")
 abline(h=mean(sigma2.mean.vec),lty=2)
 ```
 
@@ -1876,25 +1886,26 @@ mcxs4.shade1 <- rgb(mcxs4.rgb[1],mcxs4.rgb[2],mcxs4.rgb[3], alpha=120, maxColorV
 ```{r identification function}
 #| code-fold: true
 #| code-summary: "See R code"
-identification <- function(N, p, sign.restrictions, posterior.distribution) {
+identification <- function(N, p, S, sign.restrictions, posterior.distribution) {
   
-  A.posterior <- posterior.distribution$A.posterior
+  # Posterior distribution parameters
+  # ----------------------------------------------------------
+  A.posterior  <- posterior.distribution$A.posterior
   Sigma.posterior <- posterior.distribution$Sigma.posterior
   B0.posterior <- posterior.distribution$B0.posterior
   B1.posterior <- posterior.distribution$B1.posterior
   
-  S <- dim(A.posterior)[3]
-  
-  # Identification via sign restrictions
-  ############################################################
   # Initialise arrays to store Q identified estimates
+  # ----------------------------------------------------------
   i.vec <- c()
   Q.store      <- array(NA, c(N,N,S))
   B0.store     <- array(NA, c(N,N,S))
   B1.store     <- array(NA, c(N,K,S))
   B0.inv.store <- array(NA, c(N,N,S))
   
-  # Generate corresponding R matrix
+  # Identification via sign restrictions
+  ############################################################
+  # Generate R matrix
   R <- diag(sign.restrictions)
   
   for (s in 1:S){
@@ -1931,29 +1942,28 @@ identification <- function(N, p, sign.restrictions, posterior.distribution) {
   }
 ```
 
-```{r}
-irf <- function(h, N, p, S, posterior.parameters, B.restricted) {
+```{r impulse response function plot}
+#| code-fold: true
+#| code-summary: "See R code"
+irf.plot <- function(N, p, S, h, col, posterior.parameters, B.restricted) {
 
+  # Posterior distribution parameters
+  # ----------------------------------------------------------
   A.posterior    <- posterior.parameters$A.posterior
-  B.posterior    <- B.restricted$B0.inv.store
-  N <- dim(A.posterior)[2]
-  S <- dim(A.posterior)[3]
   
-  # Impulse response functions
-  ############################################################
+  # Transform B0 matrices to B
+  B.posterior    <- B.restricted$B0.inv.store
+  
   # Initialise arrays to store posterior draws
-  #A.posterior        <- array(NA, c(K,N,S))
-  #B.posterior        <- array(NA, c(N,N,S))
+  # ----------------------------------------------------------
   IRF.posterior      <- array(NA, c(N,N,h+1,S))
   IRF.inf.posterior  <- array(NA, c(N,N,S))
   J                  <- cbind(diag(N), matrix(0,N,N*(p-1)))
-  
-  # Transform B0 matrices to B
-  #for (s in 1:S){
-  #B.posterior[,,s]  <- solve(B0.store[,,s])
-  #}
-  
+
   for (s in 1:S){
+  
+  # Impulse response functions
+  ############################################################
   # Define A matrix in VAR(1) representation
   A.bold                     <- rbind(t(A.posterior[2:(1+N*p),,s]), cbind(diag(N*(p-1)), matrix(0,N*(p-1),N)))
   IRF.inf.posterior[,,s]     <- J%*%solve(diag(N*p)-A.bold)%*%t(J)%*%B.posterior[,,s]
@@ -1968,73 +1978,34 @@ irf <- function(h, N, p, S, posterior.parameters, B.restricted) {
       }
     }
   }
-  return(list(IRF.posterior = IRF.posterior,
-              IRF.inf.posterior = IRF.inf.posterior))
-}
-```
-
-```{r}
-irf.plot <- function(N, p, h, S, col, posterior.parameters, B.restricted) {
-
-  A.posterior    <- posterior.parameters$A.posterior
-  B.posterior    <- B.restricted$B0.inv.store
-  N <- dim(A.posterior)[2]
-  S <- dim(A.posterior)[3]
   
-  # Impulse response functions
+  # Impulse response functions plots
   ############################################################
-  # Initialise arrays to store posterior draws
-  #A.posterior        <- array(NA, c(K,N,S))
-  #B.posterior        <- array(NA, c(N,N,S))
-  IRF.posterior      <- array(NA, c(N,N,h+1,S))
-  IRF.inf.posterior  <- array(NA, c(N,N,S))
-  J                  <- cbind(diag(N), matrix(0,N,N*(p-1)))
+  IRF.posterior.mps   <- IRF.posterior[,2,,]
+  IRFs.k1             <- apply(IRF.posterior.mps,1:2,median)
+  IRFs.inf.k1         <- apply(IRF.posterior.mps,1,mean)
+  rownames(IRFs.k1)   <- c("GDP", "Interest rates", "Consumer price index", "Exchange rates", "Stock prices", "Stock price volatility")
   
-  # Transform B0 matrices to B
-  #for (s in 1:S){
-  #B.posterior[,,s]  <- solve(B0.store[,,s])
-  #}
+  IRFs.k1.hdi    <- apply(IRF.posterior.mps, 1:2, hdi, credMass=0.68)
+  hh             <- 1:(h+1)
   
-  for (s in 1:S){
-  # Define A matrix in VAR(1) representation
-  A.bold                     <- rbind(t(A.posterior[2:(1+N*p),,s]), cbind(diag(N*(p-1)), matrix(0,N*(p-1),N)))
-  IRF.inf.posterior[,,s]     <- J%*%solve(diag(N*p)-A.bold)%*%t(J)%*%B.posterior[,,s]
-  A.bold.power               <- A.bold
-  
-  for (i in 1:(h+1)){
-    if (i==1){
-      IRF.posterior[,,i,s]      <- B.posterior[,,s]
-      } else {
-        IRF.posterior[,,i,s]    <- J%*%A.bold.power%*%t(J)%*%B.posterior[,,s]
-        A.bold.power            <- A.bold.power%*%A.bold
-      }
-    }
-  }
-# Impulse response functions plots
-############################################################
-IRF.posterior.mps   <- IRF.posterior[,2,,]
-IRFs.k1             <- apply(IRF.posterior.mps,1:2,median)
-IRFs.inf.k1         <- apply(IRF.posterior.mps,1,mean)
-rownames(IRFs.k1)   <- c("GDP", "Interest rates", "Consumer price index", "Exchange rates", "Stock prices", "Stock price volatility")
-
-IRFs.k1.hdi    <- apply(IRF.posterior.mps, 1:2, hdi, credMass=0.68)
-hh             <- 1:(h+1)
-
-par(mfrow=c(3, 2), mar=c(3, 3, 2, 2), cex.axis=1.5, cex.lab=1.5)
-for (n in 1:N){
-  ylims=range(IRFs.k1[n,hh], IRFs.k1.hdi[,n,1:(h+1)], 0)
-  plot(hh,IRFs.k1[n,hh], type="l", ylim=ylims, axes=FALSE, xlab="", main=rownames(IRFs.k1)[n])
-  if (n==5){
-    axis(1, c(1,5,9,13,17,21), c("0","1yr","2yr","3yr","4yr","5yr"))
-    } else {
+  par(mfrow=c(3, 2), mar=c(3, 3, 2, 2), cex.axis=1.5, cex.lab=1.5)
+  for (n in 1:N){
+    ylims=range(IRFs.k1[n,hh], IRFs.k1.hdi[,n,1:(h+1)], 0)
+    plot(hh,IRFs.k1[n,hh], type="l", ylim=ylims, axes=FALSE, xlab="",
+         main=rownames(IRFs.k1)[n])
+    if (n==5){
       axis(1, c(1,5,9,13,17,21), c("0","1yr","2yr","3yr","4yr","5yr"))
-      }
-  axis(2, c(ylims[1], 0, ylims[2]), round(c(ylims[1], 0, ylims[2]), 3))
-  polygon(c(hh,(h+1):1), c(IRFs.k1.hdi[1,n,hh], IRFs.k1.hdi[2,n,(h+1):1]), col=col, border=col)
-  abline(h=0)
-  lines(hh, IRFs.k1[n,hh], lwd=2, col="darkblue")
+      } else {
+        axis(1, c(1,5,9,13,17,21), c("0","1yr","2yr","3yr","4yr","5yr"))
+        }
+    axis(2, c(ylims[1], 0, ylims[2]), round(c(ylims[1], 0, ylims[2]), 3))
+    polygon(c(hh,(h+1):1), c(IRFs.k1.hdi[1,n,hh], IRFs.k1.hdi[2,n,(h+1):1]), col=col,
+            border=col)
+    abline(h=0)
+    lines(hh, IRFs.k1[n,hh], lwd=2, col="darkblue")
+    }
   }
-}
 ```
 
 ```{r baseline model data}
@@ -2043,7 +2014,7 @@ variables <- data.frame(lapply(variables, as.numeric))
 
 # Define the lag order and the number of iterations
 # ----------------------------------------------------------
-p           <- 4          # number of lags
+p           <- p.lags     # number of lags
 S           <- S.draws    # number of posterior draws
 h           <- 20         # forecast horizon
 
@@ -2068,20 +2039,45 @@ sign.restrictions=c(-1, 1, -1, 1, 0, 0)
 ```
 
 ```{r baseline model posterior distribution}
-prior.parameters     <- prior.distribution(N, p)
+prior.parameters     <- prior.draw(N, p)
 posterior.parameters <- baseline.posterior(X, Y, N, p, S, prior.parameters)
-B.restricted         <- identification(N, p, sign.restrictions, posterior.parameters)
+B.restricted         <- identification(N, p, S, sign.restrictions, posterior.parameters)
+B.matrix             <- B.restricted$B0.inv.store
 ```
 
-The result below shows the mean of $B_0$ inverse matrix. The sign restrictions imposed in the second column is shown in the table.
-```{r baseline model Matrix B0 inverse}
-#| label: Baseline-Model-B0-inverse
-#| tbl-cap: Mean of $B_0$ inverse Matrix
-knitr::kable(round(apply(B.restricted$B0.inv.store, 1:2, mean), 4))
+The result below shows the mean of $B=B_0^{-1}$ matrix. The sign restrictions imposed in the second column are shown in the table.
+```{r baseline model B matrix}
+#| label: baseline-B-matrix
+#| tbl-cap: Mean of $B$ Matrix
+knitr::kable(round(apply(B.matrix , 1:2, mean), 4))
+```
+
+The figure below shows that the restrictions on the $B$ matrix is correctly imposed.
+```{r baseline model B matrix figure 1, fig.pos='H'}
+par(mfrow=c(2,2),mar=c(4,4,2,2))
+# B0 inverse (1,2)
+plot(B.matrix[1,2,], type='l', col="#6600CC", xlab="Number of simulation", ylab="", main=expression(B[12]), lwd = 0.1)
+hist(B.matrix[1,2,], xlab="", col ="#8866CC", main="", breaks=30)
+# B0 inverse (2,2)
+plot(B.matrix[2,2,], type='l', col="#0066CC", xlab="Number of simulation", ylab="", main=expression(B[22]), lwd = 0.1)
+hist(B.matrix[2,2,], xlab="", col ="#7799CC", main="", breaks=30)
+```
+
+
+```{r baseline model B matrix figure 2, fig.pos='H'}
+#| label: fig-baseline-B-matrix
+#| fig-cap: "Trace plot of $B$ posterior draws (Standard model)"
+par(mfrow=c(2,2),mar=c(4,4,2,2))
+# B0 inverse (3,2)
+plot(B.matrix[3,2,], type='l', col="#6600CC", xlab="Number of simulation", ylab="", main=expression(B[32]), lwd = 0.1)
+hist(B.matrix[3,2,], xlab="", ylab="Frequency", col ="#8866CC", main="", breaks=30)
+# B0 inverse (4,2)
+plot(B.matrix[4,2,], type='l', col="#0066CC", xlab="Number of simulation", ylab="", main=expression(B[42]), lwd = 0.1)
+hist(B.matrix[4,2,], xlab="", ylab="Frequency", col ="#7799CC", main="", breaks=30)
 ```
 
 ```{r baseline model A posterior}
-#| label: Baseline-Model-A-posterior
+#| label: baseline-A-posterior
 #| tbl-cap: Mean of the $A$ posterior
 A.posterior.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
 colnames(A.posterior.baseline) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
@@ -2089,31 +2085,19 @@ knitr::kable(A.posterior.baseline, format = "html", escape = FALSE)
 ```
 
 ```{r baseline model Sigma posterior}
-#| label: Baseline-Model-Sigma-posterior
+#| label: baseline-Sigma-posterior
 #| tbl-cap: Mean of the $\Sigma$ posterior
 Sigma.posterior.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
 colnames(Sigma.posterior.baseline) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
 knitr::kable(Sigma.posterior.baseline, format = "html", escape = FALSE)
 ```
 
-```{r baseline model A and Sigma posterior}
-#| label: fig-baseline-posteriors 
-#| fig-cap: Trace plot of $A$ and $\Sigma$ posterior draws (Standard model)
-par(mfrow=c(2,2),mar=c(4,3,2,2))
-# A posterior
-plot(posterior.parameters$A.posterior[2,1,], type='l', col="#6600CC", xlab="Number of simulation draws", ylab="", main=expression(A[21]), lwd = 0.1)
-hist(posterior.parameters$A.posterior[2,1,], xlab=expression(A[21]), col ="#8866CC", main ="")
-# Sigma posterior
-plot(posterior.parameters$Sigma.posterior[1,1,], type='l', col="#0066CC", xlab="Number of simulation draws", ylab="", main=expression(Sigma[11]), lwd = 0.1)
-hist(posterior.parameters$Sigma.posterior[2,2,], xlab=expression(Sigma[11]),  ylab="Frequency", col ="#7799CC", main = "")
-```
-
-Impulse response functions of the baseline model show a positive monetary policy shock on variables. The shaded area represents 68% of the credibility interval. In the short run, GDP decreases gradually, but a year after the shock, GDP decreases at a steeper rate. In the short run, interest rates immediately respond to the shock and normalised after five years of the shock. The consumer price index slightly decreases in the short run. The exchange rate has a positive effect in the short and long run. The stock price has a positive impact in the short run, but it does not have a positive effect in the long run. GDP is the only variable that is statistically different from zero.
+Figure 9 shows the response to a positive monetary policy shock on the variables. In the short run, GDP gradually decreases, but a year after the shock, GDP decreases at a steeper rate. Interest rates and consumer price index immediately respond to the shock and normalise after five years. The exchange rate displays a downward trend over five years. The stock price has a positive impact in the short run, but it does not have a positive effect in the long run. GDP is the only variable that is statistically different from zero. The shaded area represents 68% of the credibility interval.
 
 ```{r baseline model irf}
-#| label: fig-IRF-standard
+#| label: fig-IRF-baseline
 #| fig-cap: Plot of impulse response functions to monetary policy shock (Standard model)
-irf.plot(N, p, h, S, col=mcxs1.shade1, posterior.parameters, B.restricted)
+IRF <- irf.plot(N, p, S, h, col=mcxs1.shade1, posterior.parameters, B.restricted)
 ```
 
 
@@ -2123,7 +2107,7 @@ irf.plot(N, p, h, S, col=mcxs1.shade1, posterior.parameters, B.restricted)
 variables <- data.frame(lapply(variables, as.numeric))
 # Define the lag order and the number of iterations
 # ----------------------------------------------------------
-p           <- 4          # number of lags
+p           <- p.lags     # number of lags
 S           <- S.draws    # number of posterior draws
 h           <- 20         # forecast horizon
 
@@ -2148,19 +2132,44 @@ sign.restrictions=c(-1, 1, -1, 1, 0, 0)
 ```
 
 ```{r extended model posterior distribution}
-prior.parameters     <- prior.distribution(N, p)
-posterior.parameters <- extended.posterior(X, Y, N, S, p, prior.parameters)
-B.restricted         <- identification(N, p, sign.restrictions, posterior.parameters)
+prior.parameters     <- prior.draw(N, p)
+posterior.parameters <- extended.posterior(X, Y, N, p, S, prior.parameters)
+B.restricted         <- identification(N, p, S, sign.restrictions, posterior.parameters)
+B.matrix             <- B.restricted$B0.inv.store
 ```
 
-```{r extended model Matrix B0 inverse}
-#| label: Extended-Model-B0-inverse
-#| tbl-cap: Mean of $B_0$ inverse Matrix
-knitr::kable(round(apply(B.restricted$B0.inv.store, 1:2, mean), 4))
+The result below shows the mean of $B=B_0^{-1}$ matrix. The sign restrictions imposed in the second column are shown in the table.
+```{r extended model B matrix}
+#| label: extended-B-matrix
+#| tbl-cap: Mean of $B$ Matrix
+knitr::kable(round(apply(B.matrix, 1:2, mean), 4))
+```
+
+The figure below shows that the restrictions on the $B$ matrix is correctly imposed.
+```{r extended model B matrix figure 1, fig.pos='H'}
+par(mfrow=c(2,2),mar=c(4,4,2,2))
+# B0 inverse (1,2)
+plot(B.matrix[1,2,], type='l', col="#6600CC", xlab="Number of simulation", ylab="", main=expression(B[12]), lwd = 0.1)
+hist(B.matrix[1,2,], xlab="", col ="#8866CC", main="", breaks=30)
+# B0 inverse (2,2)
+plot(B.matrix[2,2,], type='l', col="#0066CC", xlab="Number of simulation", ylab="", main=expression(B[22]), lwd = 0.1)
+hist(B.matrix[2,2,], xlab="", col ="#7799CC", main="", breaks=30)
+```
+
+```{r extended model B matrix figure 2, fig.pos='H'}
+#| label: fig-extended-B-matrix
+#| fig-cap: Trace plot of $B$ posterior draws (t-distributed error model)
+par(mfrow=c(2,2),mar=c(4,4,2,2))
+# B0 inverse (3,2)
+plot(B.matrix[3,2,], type='l', col="#6600CC", xlab="Number of simulation", ylab="", main=expression(B[32]), lwd = 0.1)
+hist(B.matrix[3,2,], xlab="", ylab="Frequency", col ="#8866CC", main="", breaks=30)
+# B0 inverse (4,2)
+plot(B.matrix[4,2,], type='l', col="#0066CC", xlab="Number of simulation", ylab="", main=expression(B[42]), lwd = 0.1)
+hist(B.matrix[4,2,], xlab="", ylab="Frequency", col ="#7799CC", main="", breaks=30)
 ```
 
 ```{r extended model A posterior}
-#| label: Extended-Model-A-posterior
+#| label: extended-A-posterior
 #| tbl-cap: Mean of the $A$ posterior
 A.posterior.extended <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
 colnames(A.posterior.extended) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
@@ -2168,205 +2177,20 @@ knitr::kable(A.posterior.extended, format = "html", escape = FALSE)
 ```
 
 ```{r extended model Sigma posterior}
-#| label: Extended-Model-Sigma-posterior
+#| label: extended-Sigma-posterior
 #| tbl-cap: Mean of the $\Sigma$ posterior
 Sigma.posterior.extended <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
 colnames(Sigma.posterior.extended) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
 knitr::kable(Sigma.posterior.extended, format = "html", escape = FALSE)
 ```
 
-```{r extended model posterior irf function}
-extended.irf <- function(data, sign.restrictions, p, h, S) {
-# Define the lag order and the number of iterations
-############################################################
-p           <- 4          # number of lags (data frequency (quarter))
-S           <- S.draws    # number of posterior draws
-h           <- 20         # forecast horizon
-
-# Create Y and X matrices
-############################################################
-Y           <- variables[(p+1):nrow(variables), ]
-X           <- matrix(1, nrow(Y), 1)
-for (i in 1:p){
-  X         <- cbind(X, variables[(p+1):nrow(variables)-i, ])
-  }
-
-T           <- nrow(Y)    # number of time periods
-N           <- ncol(Y)    # number of variables
-K           <- 1+p*N
-
-# Convert it into a matrix form
-Y           <- as.matrix(Y)
-X           <- as.matrix(X)
-
-# Calculate the MLE
-############################################################
-A.hat       <- solve(t(X)%*%X)%*%t(X)%*%Y                
-Sigma.hat   <- t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)
-
-# Specify prior distribution parameters
-############################################################
-kappa.1     <- 1
-kappa.2     <- 100
-
-A.prior           <- matrix(0, nrow(A.hat), ncol(A.hat))
-A.prior[2:(N+1),] <- diag(N)
-V.prior           <- diag(c(kappa.2, kappa.1*((1:p)^(-2))%x%rep(1,N)))
-S.prior           <- diag(diag(Sigma.hat))
-nu.prior          <- N+1
-s.prior.lambda    <- 5   # assume that it is fixed
-nu.prior.lambda   <- 5   # assume that it is fixed
-lambda            <- s.prior.lambda/rchisq(1, nu.prior.lambda)
-
-# Draw Posterior distribution
-############################################################
-# Initialise arrays to store posterior draws
-Sigma.posterior   <- array(NA, c(N,N,S))
-A.posterior       <- array(NA, c(K,N,S))
-lambda.posterior  <- rep(NA, S)
-B0.posterior      <- array(NA, c(N,N,S))
-B1.posterior      <- array(NA, c(N,K,S))
-
-for (s in 1:S){
-  
-  # Specify the matrix normal-inverse Wishart posterior parameters
-  ############################################################
-  V.bar.inv  <- t(X)%*%X/lambda + diag(1/diag(V.prior))
-  V.bar      <- solve(V.bar.inv)
-  A.bar      <- V.bar%*%(t(X)%*%Y/lambda + diag(1/diag(V.prior))%*%A.prior)
-  nu.bar     <- nrow(Y) + nu.prior
-  S.bar      <- S.prior + t(Y)%*%Y/lambda + t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
-  S.bar.inv  <- solve(S.bar)
-  
-  # Draw Posterior distribution
-  ############################################################
-  ## Draw from the Reduced Form
-  ### Draw Sigma from the inverse Wishart distribution
-  Sigma.posterior.inv   <- rWishart(1, df=nu.bar, Sigma=S.bar.inv)[,,1]
-  Sigma.posterior[,,s]  <- solve(Sigma.posterior.inv)
-  
-  ### Draw A from matrix-variate normal distribution
-  A.posterior[,,s]      <- matrix(mvtnorm::rmvnorm(1, mean=as.vector(A.bar), sigma=Sigma.posterior[,,s]%x%V.bar), ncol=N)
-  
-  ### Draw lambda from inverse gamma 2 distribution
-  s.posterior.lambda    <- sum(diag(Sigma.posterior.inv%*%t(Y-X%*%A.posterior[,,s])%*%(Y-X%*%A.posterior[,,s]))) + s.prior.lambda
-  nu.posterior.lambda   <- nrow(Y)*ncol(Y) + nu.prior.lambda
-  lambda   <- s.posterior.lambda/rchisq(1, nu.posterior.lambda)
-  lambda.posterior[s]   <- lambda
-  
-  ## Draw from the Structural Form
-  ### Draw B0
-  cholSigma.s        <- chol(Sigma.posterior[,,s])
-  B0.posterior[,,s]  <- solve(t(cholSigma.s))
-
-  ### Draw Bplus
-  B1.posterior[,,s]  <- B0.posterior[,,s]%*%t(A.posterior[,,s])
-  }
-  
-# Identification via sign restrictions 
-############################################################
-# Initialise arrays to store Q identified estimates
-i.vec <- c()
-Q.store      <- array(NA, c(N,N,S))
-B0.store     <- array(NA, c(N,N,S))
-B1.store     <- array(NA, c(N,K,S))
-
-# Generate corresponding R matrix
-sign.restrictions <- c(-1, 1, -1, 1, 0, 0)
-R <- diag(sign.restrictions)
-
-for (s in 1:S){
-  B0.tilde      <- B0.posterior[,,s]
-  B1.tilde      <- B1.posterior[,,s]
-    
-  sign.restrictions.do.not.hold = TRUE
-  i=1
-  while (sign.restrictions.do.not.hold){
-    X           <- matrix(rnorm(N*N), N, N)         
-    QR          <- qr(X, tol=1e-10)
-    Q           <- qr.Q(QR, complete=TRUE)
-    R           <- qr.R(QR, complete=TRUE)
-    Q           <- t(Q %*% diag(sign(diag(R))))
-    B0          <- Q%*%B0.tilde                    
-    B1          <- Q%*%B1.tilde                   
-    B0.inv      <- solve(B0)      
-    check       <- all(B0.inv[1,2]<0, B0.inv[2,2]>0, B0.inv[3,2]<0, B0.inv[4,2]>0)
-    
-    if (check){sign.restrictions.do.not.hold = FALSE}
-    i=i+1
-    }
-  
-  i.vec <- c(i.vec, i) 
-  Q.store[,,s]   <- Q
-  B0.store[,,s]  <- B0
-  B1.store[,,s]  <- B1
-  }
-
-# Impulse response functions
-############################################################
-# Transform B0 matrices to B
-# Initialise arrays to store posterior draws
-B.posterior <- array(NA, c(N,N,S))
-  
-for (s in 1:S){
-  B.posterior[,,s]  <- solve(B0.store[,,s])
-  }
-
-# Initialise arrays to store posterior draws
-IRF.posterior       <- array(NA, c(N,N,h+1,S))
-IRF.inf.posterior   <- array(NA, c(N,N,S))
-J                   <- cbind(diag(N), matrix(0,N,N*(p-1)))
-  
-for (s in 1:S){
-  # Define A matrix in VAR(1) representation
-  A.bold                     <- rbind(t(A.posterior[2:(1+N*p),,s]), cbind(diag(N*(p-1)), matrix(0,N*(p-1),N)))
-  IRF.inf.posterior[,,s]     <- J%*%solve(diag(N*p)-A.bold)%*%t(J)%*%B.posterior[,,s]
-  A.bold.power               <- A.bold
-  
-  for (i in 1:(h+1)){
-    if (i==1){
-      IRF.posterior[,,i,s]      <- B.posterior[,,s]
-      } else {
-        IRF.posterior[,,i,s]    <- J%*%A.bold.power%*%t(J)%*%B.posterior[,,s]
-        A.bold.power            <- A.bold.power%*%A.bold
-      }
-    }
-  }
-
-# Impulse response functions plots
-############################################################
-IRF.posterior.mps   <- IRF.posterior[,2,,]
-IRFs.k1             <- apply(IRF.posterior.mps,1:2,median)
-IRFs.inf.k1         <- apply(IRF.posterior.mps,1,mean)
-rownames(IRFs.k1)   <- c("GDP", "Interest rates", "Consumer price index", "Exchange rates", "Stock prices", "Stock price volatility")
-
-IRFs.k1.hdi    <- apply(IRF.posterior.mps, 1:2, hdi, credMass=0.68)
-hh             <- 1:(h+1)
-
-par(mfrow=c(3, 2), mar=c(3, 3, 2, 2), cex.axis=1.5, cex.lab=1.5)
-for (n in 1:N){
-  ylims=range(IRFs.k1[n,hh], IRFs.k1.hdi[,n,1:(h+1)], 0)
-  plot(hh,IRFs.k1[n,hh], type="l", ylim=ylims, axes=FALSE, xlab="", main=rownames(IRFs.k1)[n])
-  if (n==5){
-    axis(1, c(1,5,9,13,17,21), c("0","1yr","2yr","3yr","4yr","5yr"))
-    } else {
-      axis(1, c(1,5,9,13,17,21), c("0","1yr","2yr","3yr","4yr","5yr"))
-      }
-  axis(2, c(ylims[1], 0, ylims[2]), round(c(ylims[1], 0, ylims[2]), 3))
-  polygon(c(hh,(h+1):1), c(IRFs.k1.hdi[1,n,hh], IRFs.k1.hdi[2,n,(h+1):1]), col=mcxs2.shade1, border=mcxs2.shade1)
-  abline(h=0)
-  lines(hh, IRFs.k1[n,hh], lwd=2, col="darkblue")
-  }
-}
-```
-
-Impulse response functions of the t-distributed innovation model show a positive monetary policy shock on variables. In the short run, interest rates immediately respond to the shock and normalise after five years. The consumer price index slightly decreases in the short run. There are no significant effects on GDP, stock prices, or stock price volatility. Consumer price index and exchange rates decrease slightly but are also insignificant. GDP is the only variable that is statistically different from zero. Note that the shaded area represents 68% credibility interval.
-
+Figure 11 shows the response to a positive monetary policy shock on the variables. The figure shows similar trend as Figure 8, however, it shows flatter line. Not surprisingly, GDP is the only variable that is statistically different from zero.
 ```{r extended model irf}
-#| label: fig-IRF-t-error
+#| label: fig-IRF-extended
 #| fig-cap: Plot of impulse response functions to monetary policy shock (t-distributed error model)
-extended.irf(data=variables, sign.restrictions=c(-1, 1, -1, 1, 0, 0), p=4, h=20, S=S.draws)
+IRF <- irf.plot(N, p, S, h, col=mcxs2.shade1, posterior.parameters, B.restricted)
 ```
+
 
 ## 5.3 Bayesian SVAR Model with Stochastic Volatility
 
@@ -2376,7 +2200,7 @@ variables <- data.frame(lapply(variables, as.numeric))
 
 # Define the lag order and the number of iterations
 # ----------------------------------------------------------
-p           <- 4          # number of lags
+p           <- p.lags     # number of lags
 S           <- S.draws    # number of posterior draws
 h           <- 20         # forecast horizon
 
@@ -2401,20 +2225,44 @@ sign.restrictions=c(-1, 1, -1, 1, 0, 0)
 ```
 
 ```{r SV baseline model posterior distribution}
-prior.parameters     <- prior.distribution(N, p)
-posterior.parameters <- SV.baseline.posterior(Y, X, S, prior.parameters)
-B.restricted         <- identification(N, p, sign.restrictions, posterior.parameters)
+prior.parameters     <- prior.draw(N, p)
+posterior.parameters <- SV.baseline.posterior(X, Y, N, p, S, prior.parameters)
+B.restricted         <- identification(N, p, S, sign.restrictions, posterior.parameters)
+B.matrix             <- B.restricted$B0.inv.store
 ```
 
-The result below shows the mean of $B_0$ inverse matrix. The sign restrictions imposed in the second column is shown in the table.
-```{r SV baseline model Matrix B0 inverse}
-#| label: SV-Baseline-Model-B0-inverse
-#| tbl-cap: Mean of $B_0$ inverse Matrix
-knitr::kable(round(apply(B.restricted$B0.inv.store, 1:2, mean), 4))
+The result below shows the mean of $B=B_0^{-1}$ matrix. The sign restrictions imposed in the second column are shown in the table.
+```{r SV baseline model B Matrix}
+#| label: SV-baseline-B-matrix
+#| tbl-cap: Mean of $B$ Matrix
+knitr::kable(round(apply(B.matrix, 1:2, mean), 4))
+```
+
+The figure below shows that the restrictions on the $B$ matrix is correctly imposed.
+```{r SV baseline model B matrix figure 1, fig.pos='H'}
+par(mfrow=c(2,2),mar=c(4,4,2,2))
+# B0 inverse (1,2)
+plot(B.matrix[1,2,], type='l', col="#6600CC", xlab="Number of simulation", ylab="", main=expression(B[12]), lwd = 0.1)
+hist(B.matrix[1,2,], xlab="", col ="#8866CC", main="", breaks=30)
+# B0 inverse (2,2)
+plot(B.matrix[2,2,], type='l', col="#0066CC", xlab="Number of simulation", ylab="", main=expression(B[22]), lwd = 0.1)
+hist(B.matrix[2,2,], xlab="", col ="#7799CC", main="", breaks=30)
+```
+
+```{r SV baseline model B matrix figure 2, fig.pos='H'}
+#| label: fig-SV-baseline-B-matrix
+#| fig-cap: Trace plot of $B$ posterior draws (standard model with stochastic volatility)
+par(mfrow=c(2,2),mar=c(4,4,2,2))
+# B0 inverse (3,2)
+plot(B.matrix[3,2,], type='l', col="#6600CC", xlab="Number of simulation", ylab="", main=expression(B[32]), lwd = 0.1)
+hist(B.matrix[3,2,], xlab="", ylab="Frequency", col ="#8866CC", main="", breaks=30)
+# B0 inverse (4,2)
+plot(B.matrix[4,2,], type='l', col="#0066CC", xlab="Number of simulation", ylab="", main=expression(B[42]), lwd = 0.1)
+hist(B.matrix[4,2,], xlab="", ylab="Frequency", col ="#7799CC", main="", breaks=30)
 ```
 
 ```{r SV baseline model A posterior}
-#| label: SV-Baseline-Model-A-posterior
+#| label: SV-baseline-A-posterior
 #| tbl-cap: Mean of the $A$ posterior
 A.posterior.baseline <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
 colnames(A.posterior.baseline) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
@@ -2422,19 +2270,18 @@ knitr::kable(A.posterior.baseline, format = "html", escape = FALSE)
 ```
 
 ```{r SV baseline model Sigma posterior}
-#| label: SV-Baseline-Model-Sigma-posterior
+#| label: SV-baseline-Sigma-posterior
 #| tbl-cap: Mean of the $\Sigma$ posterior
 Sigma.posterior.baseline <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
 colnames(Sigma.posterior.baseline) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
 knitr::kable(Sigma.posterior.baseline, format = "html", escape = FALSE)
 ```
 
-Impulse response functions of the standard model with stochastic volatility show a positive monetary policy shock on variables. In the short run, GDP and stock price volatility immediately respond to the shock and normalise within a year. No variables are statistically different from zero. Note that the shaded area represents 68% credibility interval.
-
+Figure 13 shows the response to a positive monetary policy shock on the variables. Unlike the two figures above, GDP and exchange rates show increasing trend. However, we cannot observe any significance on variables in this figure. 
 ```{r SV baseline model irf}
-#| label: fig-IRF-SV-standard
+#| label: fig-IRF-SV-baseline
 #| fig-cap: Plot of impulse response functions to monetary policy shock (Standard model with Stochastic Volatility)
-irf.plot(N, p, h, S, col=mcxs3.shade1, posterior.parameters, B.restricted)
+IRF <- irf.plot(N, p, S, h, col=mcxs3.shade1, posterior.parameters, B.restricted)
 ```
 
 
@@ -2446,8 +2293,8 @@ variables <- data.frame(lapply(variables, as.numeric))
 
 # Define the lag order and the number of iterations
 # ----------------------------------------------------------
-p           <- 4          # number of lags
-S           <- S.draws    # number of posterior draws
+p           <- p.lags     # number of lags
+S           <- 2000       # number of posterior draws
 h           <- 20         # forecast horizon
 
 # Create Y and X matrices
@@ -2471,14 +2318,68 @@ sign.restrictions=c(-1, 1, -1, 1, 0, 0)
 ```
 
 ```{r SV extended model posterior distribution}
-prior.parameters     <- prior.distribution(N, p)
-posterior.parameters <- SV.extended.posterior(Y, X, S, prior.parameters)
-B.restricted         <- identification(N, p, sign.restrictions, posterior.parameters)
+prior.parameters     <- prior.draw(N, p)
+posterior.parameters <- SV.extended.posterior(X, Y, N, p, S, prior.parameters)
+B.restricted         <- identification(N, p, S, sign.restrictions, posterior.parameters)
+B.matrix             <- B.restricted$B0.inv.store
+```
+
+The result below shows the mean of $B=B_0^{-1}$ matrix. The sign restrictions imposed in the second column are shown in the table.
+```{r SV extended model B Matrix}
+#| label: SV-extended-B-matrix
+#| tbl-cap: Mean of $B$ Matrix
+knitr::kable(round(apply(B.matrix, 1:2, mean), 4))
+```
+
+The figure below shows that the restrictions on the $B$ matrix is correctly imposed.
+```{r SV extended model B matrix figure 1, fig.pos='H'}
+par(mfrow=c(2,2),mar=c(4,4,2,2))
+# B0 inverse (1,2)
+plot(B.matrix[1,2,], type='l', col="#6600CC", xlab="Number of simulation", ylab="", main=expression(B[12]), lwd = 0.1)
+hist(B.matrix[1,2,], xlab="", col ="#8866CC", main="", breaks=30)
+# B0 inverse (2,2)
+plot(B.matrix[2,2,], type='l', col="#0066CC", xlab="Number of simulation", ylab="", main=expression(B[22]), lwd = 0.1)
+hist(B.matrix[2,2,], xlab="", col ="#7799CC", main="", breaks=30)
+```
+
+```{r SV extended model B matrix figure 2, fig.pos='H'}
+#| label: fig-SV-extended-B-matrix
+#| fig-cap: Trace plot of $B$ posterior draws (standard model with stochastic volatility)
+par(mfrow=c(2,2),mar=c(4,4,2,2))
+# B0 inverse (3,2)
+plot(B.matrix[3,2,], type='l', col="#6600CC", xlab="Number of simulation", ylab="", main=expression(B[32]), lwd = 0.1)
+hist(B.matrix[3,2,], xlab="", ylab="Frequency", col ="#8866CC", main="", breaks=30)
+# B0 inverse (4,2)
+plot(B.matrix[4,2,], type='l', col="#0066CC", xlab="Number of simulation", ylab="", main=expression(B[42]), lwd = 0.1)
+hist(B.matrix[4,2,], xlab="", ylab="Frequency", col ="#7799CC", main="", breaks=30)
+```
+
+```{r SV extended model A posterior}
+#| label: SV-extended-A-posterior
+#| tbl-cap: Mean of the $A$ posterior
+A.posterior.extended <- round(apply(posterior.parameters$A.posterior, 1:2, mean), 4)
+colnames(A.posterior.extended) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
+knitr::kable(A.posterior.extended, format = "html", escape = FALSE)
+```
+
+```{r SV extended model Sigma posterior}
+#| label: SV-extended-Sigma-posterior
+#| tbl-cap: Mean of the $\Sigma$ posterior
+Sigma.posterior.extended <- round(apply(posterior.parameters$Sigma.posterior, 1:2, mean), 4)
+colnames(Sigma.posterior.extended) <- c("gdp", "ICR", "cpi", "EXR", "stp", "vol")
+knitr::kable(Sigma.posterior.extended, format = "html", escape = FALSE)
+```
+
+Figure 15 shows the response of the variables to a positive monetary policy shock. It shows similar results as Figures 8 and 9; however, no variables are statistically different from zero.
+```{r SV extended model irf}
+#| label: fig-IRF-SV-extended
+#| fig-cap: Plot of impulse response functions to monetary policy shock (t-distributed error model with Stochastic Volatility)
+IRF <- irf.plot(N, p, S, h, col=mcxs4.shade1, posterior.parameters, B.restricted)
 ```
 
 
 # 6. Conclusion
 
-This research examines the impact of monetary policy shocks on stock price volatility in the Australian market. A SVAR model identified using sign restrictions. The findings from the first two models indicate a small negative influence of positive monetary policy shocks on GDP. The outcomes are promising for the use of Bayesian methods with volatility data, validating the use of heteroskedastic non-normal models for stock price volatility data. The study demonstrates the flexibility of Bayesian techniques for adapting to various modeling scenarios, suggesting that further enhancements and explorations of this approach are valuable for future studies.
+This research examines the impact of monetary policy shocks on stock price volatility in the Australian market. A SVAR model identified using sign restrictions. The findings from the first two models indicate a small negative influence of positive monetary policy shocks on GDP. The outcomes are promising for the use of Bayesian methods for stock price volatility data. The study demonstrates the flexibility of Bayesian techniques for adapting to various modeling scenarios, suggesting that further enhancements and explorations of this approach are valuable for future studies.
 
-## References {.unnumbered}
+### References {.unnumbered}
